@@ -31,8 +31,8 @@ test('Right side should be rendered', () => {
 })
 
 test('Bottom left corner should be rendered', () => {
-    const bottomLeftCorner = calcTileType(56, 64);
-    expect(bottomLeftCorner).toBe('bottom-left');
+    const lowerLeftCorner = calcTileType(56, 64);
+    expect(lowerLeftCorner).toBe('bottom-left');
 })
 
 test('Bottom side should be rendered', () => {
@@ -41,6 +41,6 @@ test('Bottom side should be rendered', () => {
 })
 
 test('Bottom right corner should be rendered', () => {
-    const bottomrightCorner = calcTileType(63, 64);
-    expect(bottomrightCorner).toBe('bottom-right');
+    const lowerRightCorner = calcTileType(63, 64);
+    expect(lowerRightCorner).toBe('bottom-right');
 })
