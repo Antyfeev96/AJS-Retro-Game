@@ -1,7 +1,9 @@
 export default class Team {
-    array = [];
-
+    constructor() {
+        this.array = [];
+    }
+    
     add(character) {
-        array.push(character)
+        this.array.push(character)
     }
 }

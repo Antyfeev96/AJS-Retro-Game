@@ -1,4 +1,5 @@
 import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
+import Team from './Team';
 
 /**
  * Generates random characters
@@ -9,55 +10,43 @@ import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Characte
  */
 export function* characterGenerator(allowedTypes, maxLevel) {
   // TODO: write logic here
-  if (maxLevel === 4) {
-    return;
-  }
-
-  for (const item of allowedTypes) {
-    item = Math.floor(Math.random() * allowedTypes.length)
-    console.log(item);
-    if (item === 0 || item === 3) {
-      const attack = 25, defence = 25;
-      yield {
-        level,
-        attack,
-        defence,
-        health,
-        type: item
-      }
+  for (const item in allowedTypes) {
+    const char = Math.floor(Math.random() * allowedTypes.length)
+    if (char === 0) {
+      yield allowedTypes[0]
     }
 
-    if (item === 1 || item === 4) {
-      const attack = 40, defence = 10;
-      yield {
-        level,
-        attack,
-        defence,
-        health,
-        type: item
-      }
+    if (char === 1) {
+      yield allowedTypes[1]
     }
 
-    if (item === 2 || item === 5) {
-      const attack = 10, defence = 40;
-      yield {
-        level,
-        attack,
-        defence,
-        health,
-        type: item
-      }
+    if (char === 2) {
+      yield allowedTypes[2]
     }
-    
+
+    if (char === 3) {
+      yield allowedTypes[3]
+    }
+
   }
 }
 
 export function generateTeam(allowedTypes, maxLevel, characterCount) {
   // TODO: write logic here
   const generator = characterGenerator(allowedTypes, maxLevel);
-  for (const item of generator) {
-    generator.next()
+
+  const playerTeam = new Team();
+  const uiTeam = new Team();
+  
+  for (let item of generator) {
+
+    if (item.type === 'swordsman' || item.type === 'bowman') {
+      playerTeam.add(item)
+    }
+
+    if (item.type === 'undead' || item.type === 'vampire') {
+      uiTeam.add(item)
+    }
+    
   }
 }
-
-console.log(generateTeam([new Bowman(1), new Swordsman(1), new Vampire(1), new Undead(1)], 4));

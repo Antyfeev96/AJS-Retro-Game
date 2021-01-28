@@ -6,74 +6,116 @@ export default class Character {
     this.health = 50;
     this.type = type;
     // TODO: throw error if user use "new Character()"
-    if (new.target) {
+    if (Character.target) {
       throw new Error('You should use classes, inherited from Character')
     }
   }
 }
 
-class Swordsman extends Character {
+export class Swordsman extends Character {
   constructor() {
-    super(1, type = 'swordsman') 
-    this.level = level;
+    super(1); 
     this.attack = 40;
     this.defence = 10;
     this.health = 50;
-    this.type = type;
+    this.type = 'swordsman';
   }
 }
 
-class Bowman extends Character {
+export class Bowman extends Character {
   constructor() {
-    super(1, type = 'bowman') 
-    this.level = level;
+    super(1);
     this.attack = 25;
     this.defence = 25;
     this.health = 50;
-    this.type = type;
+    this.type = 'bowman';
+
+    this[Symbol.iterator] = function() {
+      const character = this;
+      let current = this.level
+
+      return {
+        next() {
+          if (current === character.level) {
+            current = character.attack + 'attack'
+            return {
+              done: false,
+              value: character.level
+            }
+          } else if (current === '25attack') {
+            current = character.defence
+            return {
+              done: false,
+              value: character.attack
+            }
+          } else if (current === character.defence) {
+            current = character.health
+            return {
+              done: false,
+              value: character.defence
+            }
+          } else if (current === character.health) {
+            current = character.type
+            return {
+              done: false,
+              value: character.health
+            }
+          }
+          if (current === character.type) {
+            current = 'stop'
+            return {
+              done: false,
+              value: character.type
+            }
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true
+            }
+          }
+        }
+      }
+    }
   }
 }
 
-class Magician extends Character {
+export class Magician extends Character {
   constructor() {
-    super(1, type = 'magician') 
-    this.level = level;
+    super(); 
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
-    this.type = type;
+    this.type = 'magician';
   }
 }
 
-class Undead extends Character {
+export class Undead extends Character {
   constructor() {
-    super(1, type = 'undead') 
-    this.level = level;
+    super(); 
     this.attack = 40;
     this.defence = 10;
     this.health = 50;
-    this.type = type;
+    this.type = 'undead';
   }
 }
 
-class Vampire extends Character {
+export class Vampire extends Character {
   constructor() {
-    super(1, type = 'vampire') 
-    this.level = level;
+    super(); 
     this.attack = 25;
     this.defence = 25;
     this.health = 50;
-    this.type = type;
+    this.type = 'vampire';
   }
 }
 
-class Daemon extends Character {
+export class Daemon extends Character {
   constructor() {
-    super(1, type = 'daemon') 
-    this.level = level;
+    super(); 
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
-    this.type = type;
+    this.type = 'daemon';
   }
 }
