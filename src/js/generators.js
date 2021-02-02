@@ -1,7 +1,4 @@
 /* eslint-disable guard-for-in */
-import {
-  Swordsman, Bowman, Magician, Undead, Vampire, Daemon,
-} from './Character';
 import Team from './Team';
 
 /**

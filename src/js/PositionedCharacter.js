@@ -1,7 +1,6 @@
+/* eslint-disable consistent-return */
 /* eslint-disable prefer-destructuring */
-import Character, { Bowman } from './Character';
-import GamePlay from './GamePlay';
-import characterGenerator from './generators';
+import Character from './Character';
 
 export default class PositionedCharacter {
   constructor(character, position) {
@@ -16,49 +15,49 @@ export default class PositionedCharacter {
     this.character = character;
     this.position = position;
 
-    this[Symbol.iterator] = function() {
-      const character = this.character;
-      let current = character.level;
+    this[Symbol.iterator] = () => {
+      const char = this.character;
+      let current = char.level;
 
       return {
         next() {
-          if (current === character.level) {
-            current = character.attack;
+          if (current === char.level) {
+            current = char.attack;
             return {
               done: false,
-              value: character.level,
+              value: char.level,
             };
           }
 
-          if (current === character.attack) {
-            current = character.defence;
+          if (current === char.attack) {
+            current = char.defence;
             return {
               done: false,
-              value: character.attack,
+              value: char.attack,
             };
           }
 
-          if (current === character.defence) {
-            current = character.health;
+          if (current === char.defence) {
+            current = char.health;
             return {
               done: false,
-              value: character.defence,
+              value: char.defence,
             };
           }
 
-          if (current === character.health) {
-            current = character.type;
+          if (current === char.health) {
+            current = char.type;
             return {
               done: false,
-              value: character.health,
+              value: char.health,
             };
           }
 
-          if (current === character.type) {
+          if (current === char.type) {
             current = 'stop';
             return {
               done: false,
-              value: character.type,
+              value: char.type,
             };
           }
 

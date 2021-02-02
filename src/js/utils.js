@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+/* eslint-disable consistent-return */
 export function calcTileType(index, boardSize) {
   // TODO: write logic here
   if (index === 0) {
@@ -20,12 +22,12 @@ export function calcTileType(index, boardSize) {
     return 'left';
   }
 
-  if ((index > 8 && index < 15) || 
-    (index > 16 && index < 23) || 
-    (index > 24 && index < 31) || 
-    (index > 32 && index < 39) ||
-    (index > 40 && index < 47) ||
-    (index > 48 && index < 55)) {
+  if ((index > 8 && index < 15)
+    || (index > 16 && index < 23)
+    || (index > 24 && index < 31)
+    || (index > 32 && index < 39)
+    || (index > 40 && index < 47)
+    || (index > 48 && index < 55)) {
     return 'center';
   }
 

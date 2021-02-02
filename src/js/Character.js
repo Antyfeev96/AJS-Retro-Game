@@ -33,7 +33,7 @@ export class Bowman extends Character {
     this.health = 50;
     this.type = 'bowman';
 
-    this[Symbol.iterator] = function () {
+    this[Symbol.iterator] = () => {
       const character = this;
       let current = this.level;
 

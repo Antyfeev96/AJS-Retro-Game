@@ -1,7 +1,7 @@
 /* eslint-disable object-curly-newline */
 /* eslint-disable class-methods-use-this */
 import themes from './themes';
-import { characterGenerator, generateTeam } from './generators';
+import { generateTeam } from './generators';
 import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon, Character } from './Character';
 import PositionedCharacter from './PositionedCharacter';
 import GamePlay from './GamePlay';
