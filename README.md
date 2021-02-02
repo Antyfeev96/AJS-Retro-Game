@@ -1,5 +1,5 @@
 # AJS. Retro Game [![Build status](https://ci.appveyor.com/api/projects/status/432ud8ob5su77cpi?svg=true)](https://ci.appveyor.com/project/Antyfeev96/ajs-retro-game)
-GitHun Pages https://antyfeev96.github.io/AJS-Retro-game/
+GitHub Pages https://antyfeev96.github.io/AJS-Retro-game/
 
 ###### tags: `netology` `advanced js`
 
