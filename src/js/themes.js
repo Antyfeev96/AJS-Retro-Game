@@ -6,3 +6,5 @@ const themes = {
 };
 
 export default themes;
+
+const a = 5;

@@ -45,7 +45,7 @@ export default class GameController {
 
     const enemySecondCell = enemyCells[Math.floor(Math.random() * enemyCells.length)];
 
-    //drawing
+    // drawing
     this.gamePlay.redrawPositions([
       new PositionedCharacter(playerFirstChar, playerFirstCell), 
       new PositionedCharacter(playerSecondChar, playerSecondCell),
