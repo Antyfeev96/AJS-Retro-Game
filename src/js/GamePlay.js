@@ -76,8 +76,6 @@ export default class GamePlay {
     for (const position of positions) {
       const cellEl = this.boardEl.children[position.position];
       const charEl = document.createElement('div');
-      console.log(positions);
-      console.log(position);
       charEl.classList.add('character', position.character.type);
 
       const healthEl = document.createElement('div');
@@ -205,7 +203,7 @@ export default class GamePlay {
   hideCellTooltip(index) {
     this.cells[index].title = '';
   }
-  
+
   showDamage(index, damage) {
     return new Promise((resolve) => {
       const cell = this.cells[index];

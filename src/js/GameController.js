@@ -1,9 +1,9 @@
-import themes from '../js/themes';
+/* eslint-disable object-curly-newline */
+/* eslint-disable class-methods-use-this */
+import themes from './themes';
 import { characterGenerator, generateTeam } from './generators';
 import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon, Character } from './Character';
-import GamePlay from './GamePlay';
-import PositionedCharacter from './PositionedCharacter'
-import Team from './Team';
+import PositionedCharacter from './PositionedCharacter';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -15,11 +15,10 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.prairie);
-    let playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57]
-    let enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63
-    ]
-    const playerArr = [new Bowman(), new Swordsman()]
-    const enemyArr = [new Undead(), new Vampire()]
+    const playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
+    const enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+    const playerArr = [new Bowman(), new Swordsman()];
+    const enemyArr = [new Undead(), new Vampire()];
 
     // player
 
@@ -66,9 +65,3 @@ export default class GameController {
     // TODO: react to mouse leave
   }
 }
-
-// const bowman = new Bowman(1)
-
-// for (const prop of bowman) {
-//   console.log(prop);
-// }

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 import Character, { Bowman } from './Character';
 import GamePlay from './GamePlay';
 import characterGenerator from './generators';
@@ -18,11 +19,11 @@ export default class PositionedCharacter {
     this[Symbol.iterator] = function() {
       const character = this.character;
       let current = character.level;
-    
+
       return {
         next() {
           if (current === character.level) {
-            current = character.attack
+            current = character.attack;
             return {
               done: false,
               value: character.level

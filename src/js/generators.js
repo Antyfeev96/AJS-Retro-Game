@@ -1,4 +1,6 @@
-import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
+import {
+  Swordsman, Bowman, Magician, Undead, Vampire, Daemon,
+} from './Character';
 import Team from './Team';
 
 /**
@@ -11,23 +13,22 @@ import Team from './Team';
 export function* characterGenerator(allowedTypes, maxLevel) {
   // TODO: write logic here
   for (const item in allowedTypes) {
-    const char = Math.floor(Math.random() * allowedTypes.length)
+    const char = Math.floor(Math.random() * allowedTypes.length);
     if (char === 0) {
-      yield allowedTypes[0]
+      yield allowedTypes[0];
     }
 
     if (char === 1) {
-      yield allowedTypes[1]
+      yield allowedTypes[1];
     }
 
     if (char === 2) {
-      yield allowedTypes[2]
+      yield allowedTypes[2];
     }
 
     if (char === 3) {
-      yield allowedTypes[3]
+      yield allowedTypes[3];
     }
-
   }
 }
 
@@ -37,16 +38,14 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
 
   const playerTeam = new Team();
   const uiTeam = new Team();
-  
-  for (let item of generator) {
 
+  for (const item of generator) {
     if (item.type === 'swordsman' || item.type === 'bowman') {
-      playerTeam.add(item)
+      playerTeam.add(item);
     }
 
     if (item.type === 'undead' || item.type === 'vampire') {
-      uiTeam.add(item)
+      uiTeam.add(item);
     }
-    
   }
 }

@@ -1,3 +1,6 @@
+/* eslint-disable consistent-return */
+/* eslint-disable prefer-template */
+/* eslint-disable max-classes-per-file */
 export default class Character {
   constructor(level, type = 'generic') {
     this.level = level;
@@ -7,14 +10,14 @@ export default class Character {
     this.type = type;
     // TODO: throw error if user use "new Character()"
     if (Character.target) {
-      throw new Error('You should use classes, inherited from Character')
+      throw new Error('You should use classes, inherited from Character');
     }
   }
 }
 
 export class Swordsman extends Character {
   constructor() {
-    super(1); 
+    super(1);
     this.attack = 40;
     this.defence = 10;
     this.health = 50;
@@ -30,59 +33,66 @@ export class Bowman extends Character {
     this.health = 50;
     this.type = 'bowman';
 
-    this[Symbol.iterator] = function() {
+    this[Symbol.iterator] = function () {
       const character = this;
-      let current = this.level
+      let current = this.level;
 
       return {
         next() {
           if (current === character.level) {
-            current = character.attack + 'attack'
+            current = character.attack + 'attack';
             return {
               done: false,
-              value: character.level
-            }
-          } else if (current === '25attack') {
-            current = character.defence
-            return {
-              done: false,
-              value: character.attack
-            }
-          } else if (current === character.defence) {
-            current = character.health
-            return {
-              done: false,
-              value: character.defence
-            }
-          } else if (current === character.health) {
-            current = character.type
-            return {
-              done: false,
-              value: character.health
-            }
+              value: character.level,
+            };
           }
-          if (current === character.type) {
-            current = 'stop'
+
+          if (current === '25attack') {
+            current = character.defence;
             return {
               done: false,
-              value: character.type
-            }
+              value: character.attack,
+            };
+          }
+
+          if (current === character.defence) {
+            current = character.health;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === character.health) {
+            current = character.type;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === character.type) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
           }
 
           if (current === 'stop') {
             return {
-              done: true
-            }
+              done: true,
+            };
           }
-        }
-      }
-    }
+        },
+      };
+    };
   }
 }
 
 export class Magician extends Character {
   constructor() {
-    super(); 
+    super();
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
@@ -92,7 +102,7 @@ export class Magician extends Character {
 
 export class Undead extends Character {
   constructor() {
-    super(); 
+    super();
     this.attack = 40;
     this.defence = 10;
     this.health = 50;
@@ -102,7 +112,7 @@ export class Undead extends Character {
 
 export class Vampire extends Character {
   constructor() {
-    super(); 
+    super();
     this.attack = 25;
     this.defence = 25;
     this.health = 50;
@@ -112,7 +122,7 @@ export class Vampire extends Character {
 
 export class Daemon extends Character {
   constructor() {
-    super(); 
+    super();
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
