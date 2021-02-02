@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 import {
   Swordsman, Bowman, Magician, Undead, Vampire, Daemon,
 } from './Character';
@@ -14,38 +15,26 @@ export function* characterGenerator(allowedTypes, maxLevel) {
   // TODO: write logic here
   for (const item in allowedTypes) {
     const char = Math.floor(Math.random() * allowedTypes.length);
-    if (char === 0) {
-      yield allowedTypes[0];
-    }
-
-    if (char === 1) {
-      yield allowedTypes[1];
-    }
-
-    if (char === 2) {
-      yield allowedTypes[2];
-    }
-
-    if (char === 3) {
-      yield allowedTypes[3];
-    }
+    yield allowedTypes[char];
   }
 }
 
 export function generateTeam(allowedTypes, maxLevel, characterCount) {
   // TODO: write logic here
-  const generator = characterGenerator(allowedTypes, maxLevel);
 
   const playerTeam = new Team();
   const uiTeam = new Team();
 
-  for (const item of generator) {
-    if (item.type === 'swordsman' || item.type === 'bowman') {
-      playerTeam.add(item);
+  do {
+    const generator = characterGenerator(allowedTypes, maxLevel);
+    const char = generator.next();
+    if (playerTeam.array.length < 2 && (char.value.type === 'swordsman' || char.value.type === 'bowman')) {
+      playerTeam.add(char.value);
     }
+    if (uiTeam.array.length < 2 && (char.value.type === 'undead' || char.value.type === 'vampire')) {
+      uiTeam.add(char.value);
+    }
+  } while (playerTeam.array.length < 2 || uiTeam.array.length < 2);
 
-    if (item.type === 'undead' || item.type === 'vampire') {
-      uiTeam.add(item);
-    }
-  }
+  return [playerTeam.array, uiTeam.array];
 }

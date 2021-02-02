@@ -26,43 +26,49 @@ export default class PositionedCharacter {
             current = character.attack;
             return {
               done: false,
-              value: character.level
-            }
-          } else if (current === character.attack) {
-            current = character.defence
-            return {
-              done: false,
-              value: character.attack
-            }
-          } else if (current === character.defence) {
-            current = character.health
-            return {
-              done: false,
-              value: character.defence
-            }
-          } else if (current === character.health) {
-            current = character.type
-            return {
-              done: false,
-              value: character.health
-            }
+              value: character.level,
+            };
           }
-          if (current === character.type) {
-            current = 'stop'
+
+          if (current === character.attack) {
+            current = character.defence;
             return {
               done: false,
-              value: character.type
-            }
+              value: character.attack,
+            };
+          }
+
+          if (current === character.defence) {
+            current = character.health;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === character.health) {
+            current = character.type;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === character.type) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
           }
 
           if (current === 'stop') {
             return {
-              done: true
-            }
+              done: true,
+            };
           }
-        }
-      }
-    }
+        },
+      };
+    };
   }
 }
-

@@ -15,16 +15,13 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.prairie);
+
     const playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     const enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
-    const playerArr = [new Bowman(), new Swordsman()];
-    const enemyArr = [new Undead(), new Vampire()];
 
-    // player
+    const teams = generateTeam([new Bowman(), new Swordsman(), new Undead(), new Vampire()], 4, 10);
 
-    const playerFirstChar = playerArr[Math.floor(Math.random() * playerArr.length)];
-
-    const playerSecondChar = playerArr[Math.floor(Math.random() * playerArr.length)];
+    // player cells
 
     const playerFirstCell = playerCells[Math.floor(Math.random() * playerCells.length)];
 
@@ -32,11 +29,7 @@ export default class GameController {
 
     const playerSecondCell = playerCells[Math.floor(Math.random() * playerCells.length)];
 
-    // enemy
-
-    const enemyFirstChar = enemyArr[Math.floor(Math.random() * enemyArr.length)];
-
-    const enemySecondChar = enemyArr[Math.floor(Math.random() * enemyArr.length)];
+    // enemy cells
 
     const enemyFirstCell = enemyCells[Math.floor(Math.random() * enemyCells.length)];
 
@@ -46,10 +39,10 @@ export default class GameController {
 
     // drawing
     this.gamePlay.redrawPositions([
-      new PositionedCharacter(playerFirstChar, playerFirstCell), 
-      new PositionedCharacter(playerSecondChar, playerSecondCell),
-      new PositionedCharacter(enemyFirstChar, enemyFirstCell),
-      new PositionedCharacter(enemySecondChar, enemySecondCell),
+      new PositionedCharacter(teams[0][0], playerFirstCell),
+      new PositionedCharacter(teams[0][1], playerSecondCell),
+      new PositionedCharacter(teams[1][0], enemyFirstCell),
+      new PositionedCharacter(teams[1][1], enemySecondCell),
     ]);
   }
 
