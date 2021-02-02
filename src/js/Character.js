@@ -92,7 +92,7 @@ export class Bowman extends Character {
 
 export class Magician extends Character {
   constructor() {
-    super();
+    super(1);
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
@@ -102,7 +102,7 @@ export class Magician extends Character {
 
 export class Undead extends Character {
   constructor() {
-    super();
+    super(1);
     this.attack = 40;
     this.defence = 10;
     this.health = 50;
@@ -112,7 +112,7 @@ export class Undead extends Character {
 
 export class Vampire extends Character {
   constructor() {
-    super();
+    super(1);
     this.attack = 25;
     this.defence = 25;
     this.health = 50;
@@ -122,7 +122,7 @@ export class Vampire extends Character {
 
 export class Daemon extends Character {
   constructor() {
-    super();
+    super(1);
     this.attack = 10;
     this.defence = 40;
     this.health = 50;
