@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable object-curly-newline */
 /* eslint-disable class-methods-use-this */
 import themes from './themes';
@@ -51,6 +52,7 @@ export default class GameController {
 
     this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
     this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
+    this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
   }
 
   onCellClick(index) {
@@ -77,21 +79,39 @@ export default class GameController {
 
   onCellEnter(index) {
     // TODO: react to mouse enter
-    if (!Array.from(this.gamePlay.boardEl.children)[index].querySelector('.character')) {
+    const cells = Array.from(this.gamePlay.boardEl.children);
+    console.log();
+    if (!cells[index].querySelector('.character')) {
       return;
     }
 
-    const char = Array.from(this.gamePlay.boardEl.children)[index].firstChild.classList[1];
+    const char = cells[index].firstChild.classList[1];
 
     this.allowedArr.forEach((item) => {
       if (item.type === char) {
-        const obj = item;
-        this.gamePlay.showCellTooltip(`🎖${obj.level}⚔${obj.attack}🛡${obj.defence}❤${obj.health}`, index);
+        this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
       }
     });
+
+    if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
+      this.gamePlay.setCursor('pointer');
+    }
+
+    if (char === 'swordsman') {
+      const arr = [index - 9, index - 8, index - 7, index - 1, index + 1, index + 7, index + 8, index + 9];
+      const selectedCell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected'));
+      arr.forEach((item) => {
+        const delta = selectedCell - item;
+        if (index === item) {
+          this.gamePlay.setCursor('pointer');
+          this.gamePlay.selectCell(index, 'green');
+        }
+      });
+    }
   }
 
   onCellLeave(index) {
     // TODO: react to mouse leave
+    this.gamePlay.setCursor('auto');
   }
 }
