@@ -49,7 +49,6 @@ export default class GameController {
     ]);
 
     // adding eventListeners
-
     this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
     this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
     this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
@@ -64,12 +63,12 @@ export default class GameController {
     const char = Array.from(this.gamePlay.boardEl.children)[index].firstChild.classList[1];
 
     if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
-      if (this.gamePlay.boardEl.querySelector('.selected')) {
-        if (this.gamePlay.boardEl.querySelector('.selected') === Array.from(this.gamePlay.boardEl.children)[index]) {
+      if (this.gamePlay.boardEl.querySelector('.selected-yellow')) {
+        if (this.gamePlay.boardEl.querySelector('.selected-yellow') === Array.from(this.gamePlay.boardEl.children)[index]) {
           this.gamePlay.deselectCell(index);
           return;
         }
-        this.gamePlay.boardEl.querySelector('.selected').classList.toggle('selected');
+        this.gamePlay.boardEl.querySelector('.selected-yellow').classList.toggle('selected');
       }
       this.gamePlay.selectCell(index);
     } else {
@@ -80,38 +79,46 @@ export default class GameController {
   onCellEnter(index) {
     // TODO: react to mouse enter
     const cells = Array.from(this.gamePlay.boardEl.children);
-    console.log();
-    if (!cells[index].querySelector('.character')) {
-      return;
-    }
+    if (this.gamePlay.boardEl.querySelector('.selected-yellow') !== null) {
+      if (!cells[index].querySelector('.character')) {
+        const selectedCell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
+        const arr = [
+          selectedCell - 1, selectedCell - 2, selectedCell - 3, selectedCell - 4,
+          selectedCell + 1, selectedCell + 2, selectedCell + 3, selectedCell + 4,
+          selectedCell - 7, selectedCell - 14, selectedCell - 21, selectedCell - 28,
+          selectedCell + 7, selectedCell + 14, selectedCell + 21, selectedCell + 28,
+          selectedCell - 8, selectedCell - 16, selectedCell - 24, selectedCell - 32,
+          selectedCell + 8, selectedCell + 16, selectedCell + 24, selectedCell + 32,
+          selectedCell - 9, selectedCell - 18, selectedCell - 27, selectedCell - 36,
+          selectedCell + 9, selectedCell + 18, selectedCell + 27, selectedCell + 36,
+        ];
+        arr.forEach((item) => {
+          if (index === item) {
+            this.gamePlay.setCursor('pointer');
+            this.gamePlay.selectCell(index, 'green');
+          }
+        });
+      } else {
+        const char = cells[index].firstChild.classList[1];
 
-    const char = cells[index].firstChild.classList[1];
+        this.allowedArr.forEach((item) => {
+          if (item.type === char) {
+            this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+          }
+        });
 
-    this.allowedArr.forEach((item) => {
-      if (item.type === char) {
-        this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
-      }
-    });
-
-    if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
-      this.gamePlay.setCursor('pointer');
-    }
-
-    if (char === 'swordsman') {
-      const arr = [index - 9, index - 8, index - 7, index - 1, index + 1, index + 7, index + 8, index + 9];
-      const selectedCell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected'));
-      arr.forEach((item) => {
-        const delta = selectedCell - item;
-        if (index === item) {
+        if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
           this.gamePlay.setCursor('pointer');
-          this.gamePlay.selectCell(index, 'green');
         }
-      });
+      }
     }
   }
 
   onCellLeave(index) {
     // TODO: react to mouse leave
-    this.gamePlay.setCursor('auto');
+    const cells = Array.from(this.gamePlay.boardEl.children);
+    if (cells[index].classList.contains('selected-green')) {
+      cells[index].classList.remove('selected-green');
+    }
   }
 }
