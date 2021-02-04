@@ -12,11 +12,16 @@ export default class GameController {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
     this.allowedArr = [new Bowman(), new Swordsman(), new Undead(), new Vampire()];
+
     this.playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     this.enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+
+    // player cells
     this.playerFirstCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
     this.playerCells.splice(this.playerCells.indexOf(this.playerFirstCell, 0), 1);
     this.playerSecondCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
+
+    // enemy cells
     this.enemyFirstCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
     this.enemyCells.splice(this.enemyCells.indexOf(this.enemyFirstCell, 0), 1);
     this.enemySecondCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
@@ -45,28 +50,28 @@ export default class GameController {
 
   onCellClick(index) {
     // TODO: react to click
+    const cells = Array.from(this.gamePlay.boardEl.children);
+    const charCell = cells[index].querySelector('.character');
 
-    if (this.gamePlay.boardEl.style.cursor === 'not-allowed') {
-      alert('Impossible action');
-    }
-
-    if (!Array.from(this.gamePlay.boardEl.children)[index].querySelector('.character')) {
+    if (charCell === null) {
       return;
     }
 
-    const char = Array.from(this.gamePlay.boardEl.children)[index].firstChild.classList[1];
+    if (this.gamePlay.boardEl.style.cursor === 'not-allowed') {
+      GamePlay.showError('Impossible action');
+      return;
+    }
 
-    if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
-      if (this.gamePlay.boardEl.querySelector('.selected-yellow')) {
-        if (this.gamePlay.boardEl.querySelector('.selected-yellow') === Array.from(this.gamePlay.boardEl.children)[index]) {
-          this.gamePlay.deselectCell(index);
-          return;
-        }
-        this.gamePlay.boardEl.querySelector('.selected-yellow').classList.toggle('selected');
-      }
+    if (this.gamePlay.boardEl.querySelector('.selected-yellow') === null) {
       this.gamePlay.selectCell(index);
-    } else {
-      GamePlay.showError('You cant choose enemy character');
+    } else if (this.gamePlay.boardEl.querySelector('.selected-yellow') !== null) {
+      if (cells[index] === this.gamePlay.boardEl.querySelector('.selected-yellow')) {
+        this.gamePlay.deselectCell(index);
+      } else {
+        const cell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
+        this.gamePlay.deselectCell(cell);
+        this.gamePlay.selectCell(index);
+      }
     }
   }
 
@@ -74,14 +79,18 @@ export default class GameController {
     // TODO: react to mouse enter
     const cells = Array.from(this.gamePlay.boardEl.children);
     const charCell = cells[index].querySelector('.character');
-    if (this.gamePlay.boardEl.querySelector('.selected-yellow') !== null) {
-      if (!charCell) {
-        const selectedCell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
-        const x = Math.floor(selectedCell / 8);
-        const y = selectedCell % 8;
 
-        // travel and attack radius for swordsman
-        if (this.gamePlay.boardEl.querySelector('.selected-yellow').querySelector('.swordsman') !== null) {
+    const selectedCell = this.gamePlay.boardEl.querySelector('.selected-yellow');
+    const selectedCellIndex = cells.indexOf(selectedCell);
+    const x = Math.floor(selectedCellIndex / 8);
+    const y = selectedCellIndex % 8;
+
+    if (selectedCell !== null) {
+      if (charCell === null) {
+        // travel radius for swordsman
+        if (selectedCell.querySelector('.swordsman') !== null) {
+          this.gamePlay.setCursor('not-allowed');
+
           const travelBinaryArr = [
             [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
             [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
@@ -93,27 +102,7 @@ export default class GameController {
             [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
           ];
 
-          this.gamePlay.setCursor('not-allowed');
-
           travelBinaryArr.forEach((item) => {
-            if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-              this.gamePlay.setCursor('pointer');
-              this.gamePlay.selectCell(index, 'green');
-            }
-          });
-
-          const attackBinaryArr = [
-            [x + 1, y],
-            [x - 1, y],
-            [x, y + 1],
-            [x, y - 1],
-            [x + 1, y - 1],
-            [x - 1, y + 1],
-            [x + 1, y + 1],
-            [x - 1, y - 1],
-          ];
-
-          attackBinaryArr.forEach((item) => {
             if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
               this.gamePlay.setCursor('pointer');
               this.gamePlay.selectCell(index, 'green');
@@ -122,7 +111,9 @@ export default class GameController {
         }
 
         // travel radius for bowman
-        if (this.gamePlay.boardEl.querySelector('.selected-yellow').querySelector('.bowman') !== null) {
+        if (selectedCell.querySelector('.bowman') !== null) {
+          this.gamePlay.setCursor('not-allowed');
+
           const binaryArr = [
             [x + 1, y], [x + 2, y],
             [x - 1, y], [x - 2, y],
@@ -134,8 +125,6 @@ export default class GameController {
             [x - 1, y - 1], [x - 2, y - 2],
           ];
 
-          this.gamePlay.setCursor('not-allowed');
-
           binaryArr.forEach((item) => {
             if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
               this.gamePlay.setCursor('pointer');
@@ -145,7 +134,9 @@ export default class GameController {
         }
 
         // travel radius for magician
-        if (this.gamePlay.boardEl.querySelector('.selected-yellow').querySelector('.magician') !== null) {
+        if (selectedCell.querySelector('.magician') !== null) {
+          this.gamePlay.setCursor('not-allowed');
+
           const binaryArr = [
             [x + 1, y],
             [x - 1, y],
@@ -157,8 +148,6 @@ export default class GameController {
             [x - 1, y - 1],
           ];
 
-          this.gamePlay.setCursor('not-allowed');
-
           binaryArr.forEach((item) => {
             if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
               this.gamePlay.setCursor('pointer');
@@ -166,18 +155,105 @@ export default class GameController {
             }
           });
         }
-      } else if (charCell) {
-        console.log(charCell.classList[1]);
-        const char = cells[index].firstChild.classList[1];
+      }
 
-        this.allowedArr.forEach((item) => {
-          if (item.type === char) {
-            this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+      if (charCell !== null) {
+        if (charCell.classList[1] === 'undead' || charCell.classList[1] === 'vampire' || charCell.classList[1] === 'daemon') {
+          // attack radius for swordsman
+          if (selectedCell.querySelector('.swordsman') !== null) {
+            this.gamePlay.setCursor('not-allowed');
+
+            const attackBinaryArr = [
+              [x + 1, y],
+              [x - 1, y],
+              [x, y + 1],
+              [x, y - 1],
+              [x + 1, y - 1],
+              [x - 1, y + 1],
+              [x + 1, y + 1],
+              [x - 1, y - 1],
+            ];
+
+            attackBinaryArr.forEach((item) => {
+              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                this.gamePlay.setCursor('crosshair');
+                this.gamePlay.selectCell(index, 'red');
+              }
+            });
           }
-        });
 
-        if (char === 'swordsman' || char === 'bowman' || char === 'magician') {
+          // attack radius for bowman
+          if (selectedCell.querySelector('.bowman') !== null) {
+            this.gamePlay.setCursor('not-allowed');
+
+            const attackBinaryArr = [
+              [x + 1, y], [x + 2, y],
+              [x - 1, y], [x - 2, y],
+              [x, y + 1], [x, y + 2],
+              [x, y - 1], [x, y - 2],
+              [x + 1, y - 1], [x + 2, y - 2],
+              [x - 1, y + 1], [x - 2, y + 2],
+              [x + 1, y + 1], [x + 2, y + 2],
+              [x - 1, y - 1], [x - 2, y - 2],
+            ];
+
+            attackBinaryArr.forEach((item) => {
+              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                this.gamePlay.setCursor('crosshair');
+                this.gamePlay.selectCell(index, 'red');
+              }
+            });
+          }
+
+          // attack radius for magician
+          if (selectedCell.querySelector('.magician') !== null) {
+            this.gamePlay.setCursor('not-allowed');
+
+            const attackBinaryArr = [
+              [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
+              [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
+              [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
+              [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
+              [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
+              [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
+              [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
+              [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
+            ];
+
+            attackBinaryArr.forEach((item) => {
+              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                this.gamePlay.setCursor('crosshair');
+                this.gamePlay.selectCell(index, 'red');
+              }
+            });
+          }
+        } else if (charCell.classList[1] === 'swordsman' || charCell.classList[1] === 'bowman' || charCell.classList[1] === 'magician') {
           this.gamePlay.setCursor('pointer');
+        }
+      }
+    } else if (selectedCell === null) {
+      if (charCell) {
+        const char = charCell.classList[1];
+        if (char === 'swordsman'
+        || char === 'bowman'
+        || char === 'magician') {
+          this.allowedArr.forEach((item) => {
+            if (item.type === char) {
+              this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+            }
+          });
+          this.gamePlay.setCursor('pointer');
+        }
+
+        if (char === 'undead'
+        || char === 'vampire'
+        || char === 'daemon') {
+          this.allowedArr.forEach((item) => {
+            if (item.type === char) {
+              this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+            }
+          });
+          this.gamePlay.setCursor('not-allowed');
         }
       }
     }
@@ -186,8 +262,15 @@ export default class GameController {
   onCellLeave(index) {
     // TODO: react to mouse leave
     const cells = Array.from(this.gamePlay.boardEl.children);
-    if (cells[index].classList.contains('selected-green')) {
-      cells[index].classList.remove('selected-green');
+
+    this.gamePlay.setCursor('auto');
+
+    if (cells[index].classList.contains('selected-green', 'selected')) {
+      cells[index].classList.remove('selected-green', 'selected');
+    }
+
+    if (cells[index].classList.contains('selected-red', 'selected')) {
+      cells[index].classList.remove('selected-red', 'selected');
     }
   }
 }
