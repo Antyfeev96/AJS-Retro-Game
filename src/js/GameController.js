@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 /* eslint-disable max-len */
 /* eslint-disable object-curly-newline */
 /* eslint-disable class-methods-use-this */
@@ -25,22 +26,25 @@ export default class GameController {
     this.enemyFirstCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
     this.enemyCells.splice(this.enemyCells.indexOf(this.enemyFirstCell, 0), 1);
     this.enemySecondCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
+
+    // create characters
+    const teams = generateTeam(this.allowedArr, 4, 10);
+    this.playerFirst = new PositionedCharacter(teams[0][0], this.playerFirstCell);
+    this.playerSecond = new PositionedCharacter(teams[0][1], this.playerSecondCell);
+    this.enemyFirst = new PositionedCharacter(teams[1][0], this.enemyFirstCell);
+    this.enemySecond = new PositionedCharacter(teams[1][1], this.enemySecondCell);
+
+    this.turn = '';
   }
 
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.prairie);
-
-    const teams = generateTeam(this.allowedArr, 4, 10);
+    this.turn = 'player';
 
     // drawing
-    this.gamePlay.redrawPositions([
-      new PositionedCharacter(teams[0][0], this.playerFirstCell),
-      new PositionedCharacter(teams[0][1], this.playerSecondCell),
-      new PositionedCharacter(teams[1][0], this.enemyFirstCell),
-      new PositionedCharacter(teams[1][1], this.enemySecondCell),
-    ]);
+    this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
 
     // adding eventListeners
     this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
@@ -50,166 +54,64 @@ export default class GameController {
 
   onCellClick(index) {
     // TODO: react to click
-    const cells = Array.from(this.gamePlay.boardEl.children);
-    const charCell = cells[index].querySelector('.character');
+    if (this.turn === 'player') {
+      const cells = Array.from(this.gamePlay.boardEl.children);
+      const charCell = cells[index].querySelector('.character');
 
-    if (charCell === null) {
-      return;
-    }
+      if (charCell === null && this.gamePlay.boardEl.querySelector('.selected-yellow') === null) {
+        return;
+      }
 
-    if (this.gamePlay.boardEl.style.cursor === 'not-allowed') {
-      GamePlay.showError('Impossible action');
-      return;
-    }
+      if (this.gamePlay.boardEl.style.cursor === 'not-allowed') {
+        GamePlay.showError('Impossible action');
+        return;
+      }
 
-    if (this.gamePlay.boardEl.querySelector('.selected-yellow') === null) {
-      this.gamePlay.selectCell(index);
-    } else if (this.gamePlay.boardEl.querySelector('.selected-yellow') !== null) {
-      if (cells[index] === this.gamePlay.boardEl.querySelector('.selected-yellow')) {
-        this.gamePlay.deselectCell(index);
-      } else {
-        const cell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
-        this.gamePlay.deselectCell(cell);
+      if (this.gamePlay.boardEl.querySelector('.selected-yellow') === null) {
         this.gamePlay.selectCell(index);
+      } else if (this.gamePlay.boardEl.querySelector('.selected-yellow') !== null) {
+        if (cells[index] === this.gamePlay.boardEl.querySelector('.selected-yellow')) {
+          this.gamePlay.deselectCell(index);
+        } else {
+          const cell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
+          this.gamePlay.deselectCell(cell);
+          this.gamePlay.selectCell(index);
+          if (cells[index].querySelector('.character') === null) {
+            if (cell === this.playerFirst.position) {
+              this.playerFirst.position = index;
+            } else if (cell === this.playerSecond.position) {
+              this.playerSecond.position = index;
+            }
+            this.gamePlay.deselectCell(index);
+            this.gamePlay.setCursor('auto');
+            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            this.turn = 'enemy';
+          } else if (charCell.classList.contains('undead') || charCell.classList.contains('vampire') || charCell.classList.contains('daemon')) {
+            this.gamePlay.showDamage(index, 15);
+          }
+        }
       }
     }
   }
 
   onCellEnter(index) {
     // TODO: react to mouse enter
-    const cells = Array.from(this.gamePlay.boardEl.children);
-    const charCell = cells[index].querySelector('.character');
+    if (this.turn === 'player') {
+      const cells = Array.from(this.gamePlay.boardEl.children);
+      const charCell = cells[index].querySelector('.character');
 
-    const selectedCell = this.gamePlay.boardEl.querySelector('.selected-yellow');
-    const selectedCellIndex = cells.indexOf(selectedCell);
-    const x = Math.floor(selectedCellIndex / 8);
-    const y = selectedCellIndex % 8;
+      const selectedCell = this.gamePlay.boardEl.querySelector('.selected-yellow');
+      const selectedCellIndex = cells.indexOf(selectedCell);
+      const x = Math.floor(selectedCellIndex / 8);
+      const y = selectedCellIndex % 8;
 
-    if (selectedCell !== null) {
-      if (charCell === null) {
-        // travel radius for swordsman
-        if (selectedCell.querySelector('.swordsman') !== null) {
-          this.gamePlay.setCursor('not-allowed');
-
-          const travelBinaryArr = [
-            [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
-            [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
-            [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
-            [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
-            [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
-            [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
-            [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
-            [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
-          ];
-
-          travelBinaryArr.forEach((item) => {
-            if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-              this.gamePlay.setCursor('pointer');
-              this.gamePlay.selectCell(index, 'green');
-            }
-          });
-        }
-
-        // travel radius for bowman
-        if (selectedCell.querySelector('.bowman') !== null) {
-          this.gamePlay.setCursor('not-allowed');
-
-          const binaryArr = [
-            [x + 1, y], [x + 2, y],
-            [x - 1, y], [x - 2, y],
-            [x, y + 1], [x, y + 2],
-            [x, y - 1], [x, y - 2],
-            [x + 1, y - 1], [x + 2, y - 2],
-            [x - 1, y + 1], [x - 2, y + 2],
-            [x + 1, y + 1], [x + 2, y + 2],
-            [x - 1, y - 1], [x - 2, y - 2],
-          ];
-
-          binaryArr.forEach((item) => {
-            if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-              this.gamePlay.setCursor('pointer');
-              this.gamePlay.selectCell(index, 'green');
-            }
-          });
-        }
-
-        // travel radius for magician
-        if (selectedCell.querySelector('.magician') !== null) {
-          this.gamePlay.setCursor('not-allowed');
-
-          const binaryArr = [
-            [x + 1, y],
-            [x - 1, y],
-            [x, y + 1],
-            [x, y - 1],
-            [x + 1, y - 1],
-            [x - 1, y + 1],
-            [x + 1, y + 1],
-            [x - 1, y - 1],
-          ];
-
-          binaryArr.forEach((item) => {
-            if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-              this.gamePlay.setCursor('pointer');
-              this.gamePlay.selectCell(index, 'green');
-            }
-          });
-        }
-      }
-
-      if (charCell !== null) {
-        if (charCell.classList[1] === 'undead' || charCell.classList[1] === 'vampire' || charCell.classList[1] === 'daemon') {
-          // attack radius for swordsman
+      if (selectedCell !== null) {
+        if (charCell === null) {
+          // travel radius for swordsman
           if (selectedCell.querySelector('.swordsman') !== null) {
             this.gamePlay.setCursor('not-allowed');
 
-            const attackBinaryArr = [
-              [x + 1, y],
-              [x - 1, y],
-              [x, y + 1],
-              [x, y - 1],
-              [x + 1, y - 1],
-              [x - 1, y + 1],
-              [x + 1, y + 1],
-              [x - 1, y - 1],
-            ];
-
-            attackBinaryArr.forEach((item) => {
-              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-                this.gamePlay.setCursor('crosshair');
-                this.gamePlay.selectCell(index, 'red');
-              }
-            });
-          }
-
-          // attack radius for bowman
-          if (selectedCell.querySelector('.bowman') !== null) {
-            this.gamePlay.setCursor('not-allowed');
-
-            const attackBinaryArr = [
-              [x + 1, y], [x + 2, y],
-              [x - 1, y], [x - 2, y],
-              [x, y + 1], [x, y + 2],
-              [x, y - 1], [x, y - 2],
-              [x + 1, y - 1], [x + 2, y - 2],
-              [x - 1, y + 1], [x - 2, y + 2],
-              [x + 1, y + 1], [x + 2, y + 2],
-              [x - 1, y - 1], [x - 2, y - 2],
-            ];
-
-            attackBinaryArr.forEach((item) => {
-              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-                this.gamePlay.setCursor('crosshair');
-                this.gamePlay.selectCell(index, 'red');
-              }
-            });
-          }
-
-          // attack radius for magician
-          if (selectedCell.querySelector('.magician') !== null) {
-            this.gamePlay.setCursor('not-allowed');
-
-            const attackBinaryArr = [
+            const travelBinaryArr = [
               [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
               [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
               [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
@@ -220,40 +122,159 @@ export default class GameController {
               [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
             ];
 
-            attackBinaryArr.forEach((item) => {
+            travelBinaryArr.forEach((item) => {
               if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
-                this.gamePlay.setCursor('crosshair');
-                this.gamePlay.selectCell(index, 'red');
+                this.gamePlay.setCursor('pointer');
+                this.gamePlay.selectCell(index, 'green');
               }
             });
           }
-        } else if (charCell.classList[1] === 'swordsman' || charCell.classList[1] === 'bowman' || charCell.classList[1] === 'magician') {
-          this.gamePlay.setCursor('pointer');
-        }
-      }
-    } else if (selectedCell === null) {
-      if (charCell) {
-        const char = charCell.classList[1];
-        if (char === 'swordsman'
-        || char === 'bowman'
-        || char === 'magician') {
-          this.allowedArr.forEach((item) => {
-            if (item.type === char) {
-              this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
-            }
-          });
-          this.gamePlay.setCursor('pointer');
+
+          // travel radius for bowman
+          if (selectedCell.querySelector('.bowman') !== null) {
+            this.gamePlay.setCursor('not-allowed');
+
+            const binaryArr = [
+              [x + 1, y], [x + 2, y],
+              [x - 1, y], [x - 2, y],
+              [x, y + 1], [x, y + 2],
+              [x, y - 1], [x, y - 2],
+              [x + 1, y - 1], [x + 2, y - 2],
+              [x - 1, y + 1], [x - 2, y + 2],
+              [x + 1, y + 1], [x + 2, y + 2],
+              [x - 1, y - 1], [x - 2, y - 2],
+            ];
+
+            binaryArr.forEach((item) => {
+              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                this.gamePlay.setCursor('pointer');
+                this.gamePlay.selectCell(index, 'green');
+              }
+            });
+          }
+
+          // travel radius for magician
+          if (selectedCell.querySelector('.magician') !== null) {
+            this.gamePlay.setCursor('not-allowed');
+
+            const binaryArr = [
+              [x + 1, y],
+              [x - 1, y],
+              [x, y + 1],
+              [x, y - 1],
+              [x + 1, y - 1],
+              [x - 1, y + 1],
+              [x + 1, y + 1],
+              [x - 1, y - 1],
+            ];
+
+            binaryArr.forEach((item) => {
+              if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                this.gamePlay.setCursor('pointer');
+                this.gamePlay.selectCell(index, 'green');
+              }
+            });
+          }
         }
 
-        if (char === 'undead'
-        || char === 'vampire'
-        || char === 'daemon') {
-          this.allowedArr.forEach((item) => {
-            if (item.type === char) {
-              this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+        if (charCell !== null) {
+          if (charCell.classList[1] === 'undead' || charCell.classList[1] === 'vampire' || charCell.classList[1] === 'daemon') {
+            // attack radius for swordsman
+            if (selectedCell.querySelector('.swordsman') !== null) {
+              this.gamePlay.setCursor('not-allowed');
+
+              const attackBinaryArr = [
+                [x + 1, y],
+                [x - 1, y],
+                [x, y + 1],
+                [x, y - 1],
+                [x + 1, y - 1],
+                [x - 1, y + 1],
+                [x + 1, y + 1],
+                [x - 1, y - 1],
+              ];
+
+              attackBinaryArr.forEach((item) => {
+                if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                  this.gamePlay.setCursor('crosshair');
+                  this.gamePlay.selectCell(index, 'red');
+                }
+              });
             }
-          });
-          this.gamePlay.setCursor('not-allowed');
+
+            // attack radius for bowman
+            if (selectedCell.querySelector('.bowman') !== null) {
+              this.gamePlay.setCursor('not-allowed');
+
+              const attackBinaryArr = [
+                [x + 1, y], [x + 2, y],
+                [x - 1, y], [x - 2, y],
+                [x, y + 1], [x, y + 2],
+                [x, y - 1], [x, y - 2],
+                [x + 1, y - 1], [x + 2, y - 2],
+                [x - 1, y + 1], [x - 2, y + 2],
+                [x + 1, y + 1], [x + 2, y + 2],
+                [x - 1, y - 1], [x - 2, y - 2],
+              ];
+
+              attackBinaryArr.forEach((item) => {
+                if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                  this.gamePlay.setCursor('crosshair');
+                  this.gamePlay.selectCell(index, 'red');
+                }
+              });
+            }
+
+            // attack radius for magician
+            if (selectedCell.querySelector('.magician') !== null) {
+              this.gamePlay.setCursor('not-allowed');
+
+              const attackBinaryArr = [
+                [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
+                [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
+                [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
+                [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
+                [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
+                [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
+                [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
+                [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
+              ];
+
+              attackBinaryArr.forEach((item) => {
+                if (Math.floor(index / 8) === item[0] && index % 8 === item[1]) {
+                  this.gamePlay.setCursor('crosshair');
+                  this.gamePlay.selectCell(index, 'red');
+                }
+              });
+            }
+          } else if (charCell.classList[1] === 'swordsman' || charCell.classList[1] === 'bowman' || charCell.classList[1] === 'magician') {
+            this.gamePlay.setCursor('pointer');
+          }
+        }
+      } else if (selectedCell === null) {
+        if (charCell) {
+          const char = charCell.classList[1];
+          if (char === 'swordsman'
+          || char === 'bowman'
+          || char === 'magician') {
+            this.allowedArr.forEach((item) => {
+              if (item.type === char) {
+                this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+              }
+            });
+            this.gamePlay.setCursor('pointer');
+          }
+
+          if (char === 'undead'
+          || char === 'vampire'
+          || char === 'daemon') {
+            this.allowedArr.forEach((item) => {
+              if (item.type === char) {
+                this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+              }
+            });
+            this.gamePlay.setCursor('not-allowed');
+          }
         }
       }
     }
@@ -261,16 +282,18 @@ export default class GameController {
 
   onCellLeave(index) {
     // TODO: react to mouse leave
-    const cells = Array.from(this.gamePlay.boardEl.children);
+    if (this.turn === 'player') {
+      const cells = Array.from(this.gamePlay.boardEl.children);
 
-    this.gamePlay.setCursor('auto');
+      this.gamePlay.setCursor('auto');
 
-    if (cells[index].classList.contains('selected-green', 'selected')) {
-      cells[index].classList.remove('selected-green', 'selected');
-    }
+      if (cells[index].classList.contains('selected-green', 'selected')) {
+        cells[index].classList.remove('selected-green', 'selected');
+      }
 
-    if (cells[index].classList.contains('selected-red', 'selected')) {
-      cells[index].classList.remove('selected-red', 'selected');
+      if (cells[index].classList.contains('selected-red', 'selected')) {
+        cells[index].classList.remove('selected-red', 'selected');
+      }
     }
   }
 }
