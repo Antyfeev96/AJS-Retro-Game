@@ -41,7 +41,6 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.prairie);
-    this.turn = 'player';
 
     // drawing
     this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
@@ -50,6 +49,7 @@ export default class GameController {
     this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
     this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
     this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
+    this.turn = 'player';
   }
 
   onCellClick(index) {
@@ -79,15 +79,20 @@ export default class GameController {
           if (cells[index].querySelector('.character') === null) {
             if (cell === this.playerFirst.position) {
               this.playerFirst.position = index;
+              this.playerFirstCell = index;
             } else if (cell === this.playerSecond.position) {
               this.playerSecond.position = index;
+              this.playerSecondCell = index;
             }
             this.gamePlay.deselectCell(index);
             this.gamePlay.setCursor('auto');
             this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
             this.turn = 'enemy';
+            this.enemyTurn();
           } else if (charCell.classList.contains('undead') || charCell.classList.contains('vampire') || charCell.classList.contains('daemon')) {
             this.gamePlay.showDamage(index, 15);
+            this.turn = 'enemy';
+            this.enemyTurn();
           }
         }
       }
@@ -293,6 +298,72 @@ export default class GameController {
 
       if (cells[index].classList.contains('selected-red', 'selected')) {
         cells[index].classList.remove('selected-red', 'selected');
+      }
+    }
+  }
+
+  enemyTurn() {
+    if (this.turn === 'enemy') {
+      const enemyArr = [this.enemyFirst, this.enemySecond];
+      const enemyChar = enemyArr[Math.floor(Math.random() * enemyArr.length)];
+      const enemyType = enemyChar.character.type;
+      let enemyIndex = enemyChar.position;
+      const x = Math.floor(enemyIndex / 8);
+      console.log(x);
+      const y = enemyIndex % 8;
+      console.log(y);
+      const time = [2000, 3000, 4000];
+
+      const radiusOneCell = [
+        [x + 1, y],
+        [x - 1, y],
+        [x, y + 1],
+        [x, y - 1],
+        [x + 1, y - 1],
+        [x - 1, y + 1],
+        [x + 1, y + 1],
+        [x - 1, y - 1],
+      ];
+
+      const radiusTwoCells = [
+        [x + 1, y], [x + 2, y],
+        [x - 1, y], [x - 2, y],
+        [x, y + 1], [x, y + 2],
+        [x, y - 1], [x, y - 2],
+        [x + 1, y - 1], [x + 2, y - 2],
+        [x - 1, y + 1], [x - 2, y + 2],
+        [x + 1, y + 1], [x + 2, y + 2],
+        [x - 1, y - 1], [x - 2, y - 2],
+      ];
+
+      const radiusFourCells = [
+        [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
+        [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
+        [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
+        [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
+        [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
+        [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
+        [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
+        [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
+      ];
+
+      if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell)) {
+        if (enemyType === 'undead') {
+          radiusOneCell.forEach((item) => {
+            if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
+              setTimeout(() => this.gamePlay.showDamage(this.playerFirstCell, 15), time[Math.floor(Math.random() * time.length)]);
+              this.turn = 'player';
+            }
+          });
+
+          // console.log(123);
+          // const newEnemyCell = radiusFourCells[Math.floor(Math.random() * radiusFourCells.length)];
+          // console.log(newEnemyCell);
+          // const newEnemyIndex = newEnemyCell[0] * 8 + newEnemyCell[1];
+          // console.log(newEnemyIndex);
+          // enemyChar.position = newEnemyIndex;
+          // console.log(enemyChar.position);
+        }
       }
     }
   }
