@@ -331,7 +331,6 @@ export default class GameController {
       const enemyIndex = enemy.position;
       const x = Math.floor(enemyIndex / 8);
       const y = enemyIndex % 8;
-      const time = [1000, 1500, 2000];
 
       const radiusOneCell = [
         [x + 1, y],
@@ -367,30 +366,23 @@ export default class GameController {
       ];
 
       if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell)) {
-        console.log(this.playerFirst);
         if (enemyType === 'undead') {
           const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
           radiusOneCell.forEach((item) => {
             if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
               this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
                   this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
-                  return false;
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
-
           if (this.turn === 'enemy') {
             const filteredArray = radiusFourCells
               .filter((item) => {
@@ -411,19 +403,15 @@ export default class GameController {
             if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
               this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
                   this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
 
@@ -447,20 +435,15 @@ export default class GameController {
             if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
               this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
                   this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
-                  return false;
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
 
@@ -484,22 +467,17 @@ export default class GameController {
           const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
           radiusOneCell.forEach((item) => {
             if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
-                  this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
+                  this.playerSecond.character.health -= resultAttack;
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
-                  return false;
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
 
@@ -521,22 +499,17 @@ export default class GameController {
           const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
           radiusTwoCells.forEach((item) => {
             if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
-                  this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
+                  this.playerSecond.character.health -= resultAttack;
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
-                  return false;
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
 
@@ -558,22 +531,17 @@ export default class GameController {
           const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
           radiusFourCells.forEach((item) => {
             if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
                 .then(() => {
-                  console.log(this.playerFirst);
-                  this.playerFirst.character.health -= resultAttack;
-                  console.log(this.playerFirst);
+                  this.playerSecond.character.health -= resultAttack;
                   this.characters.map((elem, pos) => {
                     if (elem.character.health <= 0) {
                       this.characters.splice(pos, 1);
                     }
                   });
-                  console.log(this.characters);
                   this.gamePlay.redrawPositions(this.characters);
-                  this.turn = 'player';
-                  return false;
                 });
-              console.log(this.playerFirst);
+              this.turn = 'player';
             }
           });
 
