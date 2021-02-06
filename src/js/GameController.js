@@ -34,6 +34,8 @@ export default class GameController {
     this.enemyFirst = new PositionedCharacter(teams[1][0], this.enemyFirstCell);
     this.enemySecond = new PositionedCharacter(teams[1][1], this.enemySecondCell);
 
+    this.characters = [this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond];
+
     this.turn = '';
   }
 
@@ -74,25 +76,43 @@ export default class GameController {
           this.gamePlay.deselectCell(index);
         } else {
           const cell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
+          const attacker = this.playerFirst.position === cell ? this.playerFirst.character : this.playerSecond.character;
           this.gamePlay.deselectCell(cell);
           this.gamePlay.selectCell(index);
           if (cells[index].querySelector('.character') === null) {
             if (cell === this.playerFirst.position) {
+              Array.from(this.gamePlay.boardEl.children)[this.playerFirstCell].title = '';
               this.playerFirst.position = index;
               this.playerFirstCell = index;
             } else if (cell === this.playerSecond.position) {
+              Array.from(this.gamePlay.boardEl.children)[this.playerSecondCell].title = '';
               this.playerSecond.position = index;
               this.playerSecondCell = index;
             }
             this.gamePlay.deselectCell(index);
             this.gamePlay.setCursor('auto');
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'enemy';
             this.enemyTurn();
           } else if (charCell.classList.contains('undead') || charCell.classList.contains('vampire') || charCell.classList.contains('daemon')) {
-            this.gamePlay.showDamage(index, 15);
-            this.turn = 'enemy';
-            this.enemyTurn();
+            [this.enemyFirst, this.enemySecond].forEach((item) => {
+              if (item.position === index) {
+                this.gamePlay.deselectCell(index);
+                const resultAttack = Math.max(attacker.attack - item.character.defence, attacker.attack * 0.1);
+                this.gamePlay.showDamage(index, resultAttack)
+                  .then(() => {
+                    item.character.health -= resultAttack;
+                    this.characters.map((elem, pos) => {
+                      if (elem.character.health <= 0) {
+                        this.characters.splice(pos, 1);
+                      }
+                    });
+                    this.gamePlay.redrawPositions(this.characters);
+                    this.turn = 'enemy';
+                    this.enemyTurn();
+                  });
+              }
+            });
           }
         }
       }
@@ -305,9 +325,10 @@ export default class GameController {
   enemyTurn() {
     if (this.turn === 'enemy') {
       const enemyArr = [this.enemyFirst, this.enemySecond];
-      const enemyChar = enemyArr[Math.floor(Math.random() * enemyArr.length)];
-      const enemyType = enemyChar.character.type;
-      const enemyIndex = enemyChar.position;
+      const enemy = enemyArr[Math.floor(Math.random() * enemyArr.length)];
+      const enemyChar = enemy.character;
+      const enemyType = enemy.character.type;
+      const enemyIndex = enemy.position;
       const x = Math.floor(enemyIndex / 8);
       const y = enemyIndex % 8;
       const time = [1000, 1500, 2000];
@@ -347,10 +368,25 @@ export default class GameController {
 
       if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell)) {
         if (enemyType === 'undead') {
+          const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
+          console.log(resultAttack);
           radiusOneCell.forEach((item) => {
             if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-              setTimeout(() => this.gamePlay.showDamage(this.playerFirstCell, 15), time[Math.floor(Math.random() * time.length)]);
-              this.turn = 'player';
+              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+                .then(() => {
+                  console.log(this.playerFirst);
+                  this.playerFirst.character.health -= resultAttack;
+                  console.log(this.playerFirst);
+                  this.characters.map((elem, pos) => {
+                    if (elem.character.health <= 0) {
+                      this.characters.splice(pos, 1);
+                    }
+                  });
+                  console.log(this.characters);
+                  this.gamePlay.redrawPositions(this.characters);
+                  this.turn = 'player';
+                });
+                console.log(this.playerFirst);
             }
           });
 
@@ -364,8 +400,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         } else if (enemyType === 'vampire') {
@@ -386,8 +422,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         } else if (enemyType === 'daemon') {
@@ -408,8 +444,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         }
@@ -432,8 +468,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         } else if (enemyType === 'vampire') {
@@ -454,8 +490,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         } else if (enemyType === 'daemon') {
@@ -476,8 +512,8 @@ export default class GameController {
 
             const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-            enemyChar.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions([this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond]);
+            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            this.gamePlay.redrawPositions(this.characters);
             this.turn = 'player';
           }
         }
