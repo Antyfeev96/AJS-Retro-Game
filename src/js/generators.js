@@ -20,7 +20,7 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
   // TODO: write logic here
 
   const playerTeam = new Team();
-  const uiTeam = new Team();
+  const enemyTeam = new Team();
 
   do {
     const generator = characterGenerator(allowedTypes, maxLevel);
@@ -28,10 +28,10 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
     if (playerTeam.array.length < 2 && (char.value.type === 'swordsman' || char.value.type === 'bowman')) {
       playerTeam.add(char.value);
     }
-    if (uiTeam.array.length < 2 && (char.value.type === 'undead' || char.value.type === 'vampire')) {
-      uiTeam.add(char.value);
+    if (enemyTeam.array.length < 2 && (char.value.type === 'undead' || char.value.type === 'vampire')) {
+      enemyTeam.add(char.value);
     }
-  } while (playerTeam.array.length < 2 || uiTeam.array.length < 2);
+  } while (playerTeam.array.length < 2 || enemyTeam.array.length < 2);
 
-  return [playerTeam.array, uiTeam.array];
+  return [playerTeam.array, enemyTeam.array];
 }

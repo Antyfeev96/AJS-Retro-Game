@@ -28,14 +28,15 @@ export default class GameController {
     this.enemySecondCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
 
     // create characters
-    const teams = generateTeam(this.allowedArr, 4, 10);
-    this.playerFirst = new PositionedCharacter(teams[0][0], this.playerFirstCell);
-    this.playerSecond = new PositionedCharacter(teams[0][1], this.playerSecondCell);
-    this.enemyFirst = new PositionedCharacter(teams[1][0], this.enemyFirstCell);
-    this.enemySecond = new PositionedCharacter(teams[1][1], this.enemySecondCell);
+    this.teams = generateTeam(this.allowedArr, 4, 10);
+    this.playerFirst = new PositionedCharacter(this.teams[0][0], this.playerFirstCell);
+    this.playerSecond = new PositionedCharacter(this.teams[0][1], this.playerSecondCell);
+    this.enemyFirst = new PositionedCharacter(this.teams[1][0], this.enemyFirstCell);
+    this.enemySecond = new PositionedCharacter(this.teams[1][1], this.enemySecondCell);
 
     this.characters = [this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond];
-
+    this.playerTeam = [this.playerFirst, this.playerSecond];
+    this.enemyTeam = [this.enemyFirst, this.enemySecond];
     this.turn = '';
   }
 
@@ -323,14 +324,11 @@ export default class GameController {
   }
 
   enemyTurn() {
-    if (this.turn === 'enemy') {
-      const enemyArr = [this.enemyFirst, this.enemySecond];
-      const enemy = enemyArr[Math.floor(Math.random() * enemyArr.length)];
-      const enemyChar = enemy.character;
-      const enemyType = enemy.character.type;
-      const enemyIndex = enemy.position;
-      const x = Math.floor(enemyIndex / 8);
-      const y = enemyIndex % 8;
+    this.enemyTeam.forEach((item) => {
+      item = this.enemyTeam[Math.floor(Math.random() * this.enemyTeam.length)];
+      const x = Math.floor(item.position / 8);
+      const y = item.position % 8;
+      const enemyChar = item.character;
 
       const radiusOneCell = [
         [x + 1, y],
@@ -365,202 +363,359 @@ export default class GameController {
         [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
       ];
 
-      if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell)) {
-        if (enemyType === 'undead') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-          radiusOneCell.forEach((item) => {
-            if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+      if (this.turn === 'enemy') {
+        if (enemyChar.type === 'undead') {
+          this.playerTeam.forEach((player) => {
+            const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
+            const cell = [Math.floor(player.position / 8), player.position % 8];
+            if (radiusOneCell.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
+              this.gamePlay.showDamage(player.position, resultAttack)
                 .then(() => {
-                  this.playerFirst.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
+                  player.character.health -= resultAttack;
+                  [this.characters, this.playerTeam].forEach((array) => {
+                    array.map((elem, pos) => {
+                      if (elem.character.health <= 0) {
+                        this.characters.splice(pos, 1);
+                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                        this.turn = 'player';
+                      }
+                    });
                   });
                   this.gamePlay.redrawPositions(this.characters);
                 });
+            } else {
+              const filteredArray = radiusFourCells
+                .filter((elem) => {
+                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+                  }
+                });
+
+              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
+              this.gamePlay.redrawPositions(this.characters);
               this.turn = 'player';
             }
           });
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusFourCells
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
-        } else if (enemyType === 'vampire') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-          radiusTwoCells.forEach((item) => {
-            if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+        } else if (enemyChar.type === 'vampire') {
+          this.playerTeam.forEach((player) => {
+            const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
+            const cell = [Math.floor(player.position / 8), player.position % 8];
+            if (radiusTwoCells.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
+              this.gamePlay.showDamage(player.position, resultAttack)
                 .then(() => {
-                  this.playerFirst.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
+                  player.character.health -= resultAttack;
+                  [this.characters, this.playerTeam].forEach((array) => {
+                    array.map((elem, pos) => {
+                      if (elem.character.health <= 0) {
+                        this.characters.splice(pos, 1);
+                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                        this.turn = 'player';
+                      }
+                    });
                   });
                   this.gamePlay.redrawPositions(this.characters);
                 });
+            } else {
+              const filteredArray = radiusTwoCells
+                .filter((elem) => {
+                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+                  }
+                });
+
+              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
+              this.gamePlay.redrawPositions(this.characters);
               this.turn = 'player';
             }
           });
-
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusTwoCells
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
-        } else if (enemyType === 'daemon') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-          radiusFourCells.forEach((item) => {
-            if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-              this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+        } else if (enemyChar.type === 'daemon') {
+          this.playerTeam.forEach((player) => {
+            const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
+            const cell = [Math.floor(player.position / 8), player.position % 8];
+            if (radiusFourCells.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
+              this.gamePlay.showDamage(player.position, resultAttack)
                 .then(() => {
-                  this.playerFirst.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
+                  player.character.health -= resultAttack;
+                  [this.characters, this.playerTeam].forEach((array) => {
+                    array.map((elem, pos) => {
+                      if (elem.character.health <= 0) {
+                        this.characters.splice(pos, 1);
+                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                        this.turn = 'player';
+                      }
+                    });
                   });
                   this.gamePlay.redrawPositions(this.characters);
                 });
-              this.turn = 'player';
-            }
-          });
-
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusOneCell
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
-        }
-      } else if (Math.abs(enemyIndex - this.playerFirstCell) >= Math.abs(enemyIndex - this.playerSecondCell)) {
-        if (enemyType === 'undead') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-          radiusOneCell.forEach((item) => {
-            if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-                .then(() => {
-                  this.playerSecond.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
-                  });
-                  this.gamePlay.redrawPositions(this.characters);
+            } else {
+              const filteredArray = radiusOneCell
+                .filter((elem) => {
+                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+                  }
                 });
+
+              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
+              this.gamePlay.redrawPositions(this.characters);
               this.turn = 'player';
             }
           });
-
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusFourCells
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
-        } else if (enemyType === 'vampire') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-          radiusTwoCells.forEach((item) => {
-            if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-                .then(() => {
-                  this.playerSecond.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
-                  });
-                  this.gamePlay.redrawPositions(this.characters);
-                });
-              this.turn = 'player';
-            }
-          });
-
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusTwoCells
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
-        } else if (enemyType === 'daemon') {
-          const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-          radiusFourCells.forEach((item) => {
-            if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-              this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-                .then(() => {
-                  this.playerSecond.character.health -= resultAttack;
-                  this.characters.map((elem, pos) => {
-                    if (elem.character.health <= 0) {
-                      this.characters.splice(pos, 1);
-                    }
-                  });
-                  this.gamePlay.redrawPositions(this.characters);
-                });
-              this.turn = 'player';
-            }
-          });
-
-          if (this.turn === 'enemy') {
-            const filteredArray = radiusOneCell
-              .filter((item) => {
-                if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-                  return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-                }
-              });
-
-            const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-            enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-            this.gamePlay.redrawPositions(this.characters);
-            this.turn = 'player';
-          }
         }
       }
-    }
+    });
+    // if (this.turn === 'enemy') {
+    //   const enemyArr = [this.enemyFirst, this.enemySecond];
+    //   const enemy = enemyArr[Math.floor(Math.random() * enemyArr.length)];
+    //   const enemyChar = enemy.character;
+    //   const enemyType = enemy.character.type;
+    //   const enemyIndex = enemy.position;
+    //   const x = Math.floor(enemyIndex / 8);
+    //   const y = enemyIndex % 8;
+
+    //   const radiusOneCell = [
+    //     [x + 1, y],
+    //     [x - 1, y],
+    //     [x, y + 1],
+    //     [x, y - 1],
+    //     [x + 1, y - 1],
+    //     [x - 1, y + 1],
+    //     [x + 1, y + 1],
+    //     [x - 1, y - 1],
+    //   ];
+
+    //   const radiusTwoCells = [
+    //     [x + 1, y], [x + 2, y],
+    //     [x - 1, y], [x - 2, y],
+    //     [x, y + 1], [x, y + 2],
+    //     [x, y - 1], [x, y - 2],
+    //     [x + 1, y - 1], [x + 2, y - 2],
+    //     [x - 1, y + 1], [x - 2, y + 2],
+    //     [x + 1, y + 1], [x + 2, y + 2],
+    //     [x - 1, y - 1], [x - 2, y - 2],
+    //   ];
+
+    //   const radiusFourCells = [
+    //     [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
+    //     [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
+    //     [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
+    //     [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
+    //     [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
+    //     [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
+    //     [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
+    //     [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
+    //   ];
+
+    //   if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell) && this.characters.indexOf(this.playerFirst) !== -1) {
+    //     if (enemyType === 'undead') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
+    //       radiusOneCell.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
+    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+    //             .then(() => {
+    //               this.playerFirst.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+    //   const filteredArray = radiusFourCells
+    // if (this.turn === 'enemy') {
+    //     .filter((item) => {
+    //       if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //         return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //       }
+    //     });
+
+    //   const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //   enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //   this.gamePlay.redrawPositions(this.characters);
+    //   this.turn = 'player';
+    // }
+    //     } else if (enemyType === 'vampire') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
+    //       radiusTwoCells.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
+    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+    //             .then(() => {
+    //               this.playerFirst.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+
+    //       if (this.turn === 'enemy') {
+    //         const filteredArray = radiusTwoCells
+    //           .filter((item) => {
+    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //             }
+    //           });
+
+    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //         this.gamePlay.redrawPositions(this.characters);
+    //         this.turn = 'player';
+    //       }
+    //     } else if (enemyType === 'daemon') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
+    //       radiusFourCells.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
+    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
+    //             .then(() => {
+    //               this.playerFirst.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+
+    //       if (this.turn === 'enemy') {
+    //         const filteredArray = radiusOneCell
+    //           .filter((item) => {
+    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //             }
+    //           });
+
+    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //         this.gamePlay.redrawPositions(this.characters);
+    //         this.turn = 'player';
+    //       }
+    //     }
+    //   } else if (Math.abs(enemyIndex - this.playerFirstCell) >= Math.abs(enemyIndex - this.playerSecondCell) && this.characters.indexOf(this.playerSecond) !== -1) {
+    //     if (enemyType === 'undead') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
+    //       radiusOneCell.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
+    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
+    //             .then(() => {
+    //               this.playerSecond.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+
+    //       if (this.turn === 'enemy') {
+    //         const filteredArray = radiusFourCells
+    //           .filter((item) => {
+    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //             }
+    //           });
+
+    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //         this.gamePlay.redrawPositions(this.characters);
+    //         this.turn = 'player';
+    //       }
+    //     } else if (enemyType === 'vampire') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
+    //       radiusTwoCells.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
+    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
+    //             .then(() => {
+    //               this.playerSecond.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+
+    //       if (this.turn === 'enemy') {
+    //         const filteredArray = radiusTwoCells
+    //           .filter((item) => {
+    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //             }
+    //           });
+
+    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //         this.gamePlay.redrawPositions(this.characters);
+    //         this.turn = 'player';
+    //       }
+    //     } else if (enemyType === 'daemon') {
+    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
+    //       radiusFourCells.forEach((item) => {
+    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
+    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
+    //             .then(() => {
+    //               this.playerSecond.character.health -= resultAttack;
+    //               this.characters.map((elem, pos) => {
+    //                 if (elem.character.health <= 0) {
+    //                   this.characters.splice(pos, 1);
+    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+    //                 }
+    //               });
+    //               this.gamePlay.redrawPositions(this.characters);
+    //             });
+    //           this.turn = 'player';
+    //         }
+    //       });
+
+    //       if (this.turn === 'enemy') {
+    //         const filteredArray = radiusOneCell
+    //           .filter((item) => {
+    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
+    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
+    //             }
+    //           });
+
+    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+
+    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+    //         this.gamePlay.redrawPositions(this.characters);
+    //         this.turn = 'player';
+    //       }
+    //     }
+    //   }
+    // }
   }
 }
