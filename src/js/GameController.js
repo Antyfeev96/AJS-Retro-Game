@@ -103,10 +103,13 @@ export default class GameController {
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
                     item.character.health -= resultAttack;
-                    this.characters.map((elem, pos) => {
-                      if (elem.character.health <= 0) {
-                        this.characters.splice(pos, 1);
-                      }
+                    [this.characters, this.enemyTeam].forEach((array) => {
+                      array.map((elem, pos) => {
+                        if (elem.character.health <= 0) {
+                          array.splice(pos, 1);
+                          Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                        }
+                      });
                     });
                     this.gamePlay.redrawPositions(this.characters);
                     this.turn = 'enemy';
@@ -324,398 +327,152 @@ export default class GameController {
   }
 
   enemyTurn() {
-    this.enemyTeam.forEach((item) => {
-      item = this.enemyTeam[Math.floor(Math.random() * this.enemyTeam.length)];
-      const x = Math.floor(item.position / 8);
-      const y = item.position % 8;
-      const enemyChar = item.character;
+    const enemy = this.enemyTeam[Math.floor(Math.random() * this.enemyTeam.length)];
 
-      const radiusOneCell = [
-        [x + 1, y],
-        [x - 1, y],
-        [x, y + 1],
-        [x, y - 1],
-        [x + 1, y - 1],
-        [x - 1, y + 1],
-        [x + 1, y + 1],
-        [x - 1, y - 1],
-      ];
+    const x = Math.floor(enemy.position / 8);
+    const y = enemy.position % 8;
+    const enemyChar = enemy.character;
 
-      const radiusTwoCells = [
-        [x + 1, y], [x + 2, y],
-        [x - 1, y], [x - 2, y],
-        [x, y + 1], [x, y + 2],
-        [x, y - 1], [x, y - 2],
-        [x + 1, y - 1], [x + 2, y - 2],
-        [x - 1, y + 1], [x - 2, y + 2],
-        [x + 1, y + 1], [x + 2, y + 2],
-        [x - 1, y - 1], [x - 2, y - 2],
-      ];
+    const radiusOneCell = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+      [x + 1, y - 1],
+      [x - 1, y + 1],
+      [x + 1, y + 1],
+      [x - 1, y - 1],
+    ];
 
-      const radiusFourCells = [
-        [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
-        [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
-        [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
-        [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
-        [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
-        [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
-        [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
-        [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
-      ];
+    const radiusTwoCells = [
+      [x + 1, y], [x + 2, y],
+      [x - 1, y], [x - 2, y],
+      [x, y + 1], [x, y + 2],
+      [x, y - 1], [x, y - 2],
+      [x + 1, y - 1], [x + 2, y - 2],
+      [x - 1, y + 1], [x - 2, y + 2],
+      [x + 1, y + 1], [x + 2, y + 2],
+      [x - 1, y - 1], [x - 2, y - 2],
+    ];
 
-      if (this.turn === 'enemy') {
-        if (enemyChar.type === 'undead') {
-          this.playerTeam.forEach((player) => {
+    const radiusFourCells = [
+      [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
+      [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
+      [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
+      [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
+      [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
+      [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
+      [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
+      [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
+    ];
+
+    for (const player of this.playerTeam) {
+      if (enemyChar.type === 'undead' && this.turn === 'enemy') {
+        radiusOneCell.forEach((cell) => {
+          if (cell[0] === Math.floor(player.position / 8) && cell[1] === player.position % 8) {
+            this.turn = 'player';
             const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
-            const cell = [Math.floor(player.position / 8), player.position % 8];
-            if (radiusOneCell.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
-              this.gamePlay.showDamage(player.position, resultAttack)
-                .then(() => {
-                  player.character.health -= resultAttack;
-                  [this.characters, this.playerTeam].forEach((array) => {
-                    array.map((elem, pos) => {
-                      if (elem.character.health <= 0) {
-                        this.characters.splice(pos, 1);
-                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-                        this.turn = 'player';
-                      }
-                    });
+            this.gamePlay.showDamage(player.position, resultAttack)
+              .then(() => {
+                player.character.health -= resultAttack;
+                [this.characters, this.playerTeam].forEach((array) => {
+                  array.map((elem, pos) => {
+                    if (elem.character.health <= 0) {
+                      array.splice(pos, 1);
+                      Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                    }
                   });
-                  this.gamePlay.redrawPositions(this.characters);
                 });
-            } else {
-              const filteredArray = radiusFourCells
-                .filter((elem) => {
-                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
-                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
-                  }
-                });
+                this.gamePlay.redrawPositions(this.characters);
+              });
+          }
+        });
 
-              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+        if (this.turn === 'enemy') {
+          const filteredArray = radiusFourCells
+            .filter((elem) => {
+              if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+              }
+            });
+          const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
-              this.gamePlay.redrawPositions(this.characters);
-              this.turn = 'player';
-            }
-          });
-        } else if (enemyChar.type === 'vampire') {
-          this.playerTeam.forEach((player) => {
+          Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
+          enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+          this.gamePlay.redrawPositions(this.characters);
+          this.turn = 'player';
+        }
+      } else if (enemyChar.type === 'vampire' && this.turn === 'enemy') {
+        radiusTwoCells.forEach((cell) => {
+          if (cell[0] === Math.floor(player.position / 8) && cell[1] === player.position % 8) {
+            this.turn = 'player';
             const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
-            const cell = [Math.floor(player.position / 8), player.position % 8];
-            if (radiusTwoCells.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
-              this.gamePlay.showDamage(player.position, resultAttack)
-                .then(() => {
-                  player.character.health -= resultAttack;
-                  [this.characters, this.playerTeam].forEach((array) => {
-                    array.map((elem, pos) => {
-                      if (elem.character.health <= 0) {
-                        this.characters.splice(pos, 1);
-                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-                        this.turn = 'player';
-                      }
-                    });
+            this.gamePlay.showDamage(player.position, resultAttack)
+              .then(() => {
+                player.character.health -= resultAttack;
+                [this.characters, this.playerTeam].forEach((array) => {
+                  array.map((elem, pos) => {
+                    if (elem.character.health <= 0) {
+                      array.splice(pos, 1);
+                      Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                    }
                   });
-                  this.gamePlay.redrawPositions(this.characters);
                 });
-            } else {
-              const filteredArray = radiusTwoCells
-                .filter((elem) => {
-                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
-                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
-                  }
-                });
+                this.gamePlay.redrawPositions(this.characters);
+              });
+          }
+        });
 
-              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+        if (this.turn === 'enemy') {
+          const filteredArray = radiusTwoCells
+            .filter((elem) => {
+              if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+              }
+            });
+          const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
-              this.gamePlay.redrawPositions(this.characters);
-              this.turn = 'player';
-            }
-          });
-        } else if (enemyChar.type === 'daemon') {
-          this.playerTeam.forEach((player) => {
+          Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
+          enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+          this.gamePlay.redrawPositions(this.characters);
+          this.turn = 'player';
+        }
+      } else if (enemyChar.type === 'daemon' && this.turn === 'enemy') {
+        radiusFourCells.forEach((cell) => {
+          if (cell[0] === Math.floor(player.position / 8) && cell[1] === player.position % 8) {
+            this.turn = 'player';
             const resultAttack = Math.max(enemyChar.attack - player.character.defence, enemyChar.attack * 0.1);
-            const cell = [Math.floor(player.position / 8), player.position % 8];
-            if (radiusFourCells.find((elem) => elem[0] === cell[0] && elem[1] === cell[1])) {
-              this.gamePlay.showDamage(player.position, resultAttack)
-                .then(() => {
-                  player.character.health -= resultAttack;
-                  [this.characters, this.playerTeam].forEach((array) => {
-                    array.map((elem, pos) => {
-                      if (elem.character.health <= 0) {
-                        this.characters.splice(pos, 1);
-                        Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-                        this.turn = 'player';
-                      }
-                    });
+            this.gamePlay.showDamage(player.position, resultAttack)
+              .then(() => {
+                player.character.health -= resultAttack;
+                [this.characters, this.playerTeam].forEach((array) => {
+                  array.map((elem, pos) => {
+                    if (elem.character.health <= 0) {
+                      array.splice(pos, 1);
+                      Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
+                    }
                   });
-                  this.gamePlay.redrawPositions(this.characters);
                 });
-            } else {
-              const filteredArray = radiusOneCell
-                .filter((elem) => {
-                  if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
-                    return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
-                  }
-                });
+                this.gamePlay.redrawPositions(this.characters);
+              });
+          }
+        });
 
-              const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
+        if (this.turn === 'enemy') {
+          const filteredArray = radiusOneCell
+            .filter((elem) => {
+              if (elem[0] >= 0 && elem[0] < 8 && elem[1] >= 0 && elem[1] < 8) {
+                return Array.from(this.gamePlay.boardEl.children)[elem[0] * 8 + elem[1]].querySelector('.character') === null;
+              }
+            });
+          const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
-              item.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-              Array.from(this.gamePlay.boardEl.children)[item.position].title = '';
-              this.gamePlay.redrawPositions(this.characters);
-              this.turn = 'player';
-            }
-          });
+          Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
+          enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+          this.gamePlay.redrawPositions(this.characters);
+          this.turn = 'player';
         }
       }
-    });
-    // if (this.turn === 'enemy') {
-    //   const enemyArr = [this.enemyFirst, this.enemySecond];
-    //   const enemy = enemyArr[Math.floor(Math.random() * enemyArr.length)];
-    //   const enemyChar = enemy.character;
-    //   const enemyType = enemy.character.type;
-    //   const enemyIndex = enemy.position;
-    //   const x = Math.floor(enemyIndex / 8);
-    //   const y = enemyIndex % 8;
-
-    //   const radiusOneCell = [
-    //     [x + 1, y],
-    //     [x - 1, y],
-    //     [x, y + 1],
-    //     [x, y - 1],
-    //     [x + 1, y - 1],
-    //     [x - 1, y + 1],
-    //     [x + 1, y + 1],
-    //     [x - 1, y - 1],
-    //   ];
-
-    //   const radiusTwoCells = [
-    //     [x + 1, y], [x + 2, y],
-    //     [x - 1, y], [x - 2, y],
-    //     [x, y + 1], [x, y + 2],
-    //     [x, y - 1], [x, y - 2],
-    //     [x + 1, y - 1], [x + 2, y - 2],
-    //     [x - 1, y + 1], [x - 2, y + 2],
-    //     [x + 1, y + 1], [x + 2, y + 2],
-    //     [x - 1, y - 1], [x - 2, y - 2],
-    //   ];
-
-    //   const radiusFourCells = [
-    //     [x + 1, y], [x + 2, y], [x + 3, y], [x + 4, y],
-    //     [x - 1, y], [x - 2, y], [x - 3, y], [x - 4, y],
-    //     [x, y + 1], [x, y + 2], [x, y + 3], [x, y + 4],
-    //     [x, y - 1], [x, y - 2], [x, y - 3], [x, y - 4],
-    //     [x + 1, y - 1], [x + 2, y - 2], [x + 3, y - 3], [x + 4, y - 4],
-    //     [x - 1, y + 1], [x - 2, y + 2], [x - 3, y + 3], [x - 4, y + 4],
-    //     [x + 1, y + 1], [x + 2, y + 2], [x + 3, y + 3], [x + 4, y + 4],
-    //     [x - 1, y - 1], [x - 2, y - 2], [x - 3, y - 3], [x - 4, y - 4],
-    //   ];
-
-    //   if (Math.abs(enemyIndex - this.playerFirstCell) < Math.abs(enemyIndex - this.playerSecondCell) && this.characters.indexOf(this.playerFirst) !== -1) {
-    //     if (enemyType === 'undead') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-    //       radiusOneCell.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
-    //             .then(() => {
-    //               this.playerFirst.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-    //   const filteredArray = radiusFourCells
-    // if (this.turn === 'enemy') {
-    //     .filter((item) => {
-    //       if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //         return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //       }
-    //     });
-
-    //   const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //   enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //   this.gamePlay.redrawPositions(this.characters);
-    //   this.turn = 'player';
-    // }
-    //     } else if (enemyType === 'vampire') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-    //       radiusTwoCells.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
-    //             .then(() => {
-    //               this.playerFirst.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-
-    //       if (this.turn === 'enemy') {
-    //         const filteredArray = radiusTwoCells
-    //           .filter((item) => {
-    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //             }
-    //           });
-
-    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //         this.gamePlay.redrawPositions(this.characters);
-    //         this.turn = 'player';
-    //       }
-    //     } else if (enemyType === 'daemon') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerFirst.character.defence, enemyChar.attack * 0.1);
-    //       radiusFourCells.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerFirstCell / 8) && item[1] === this.playerFirstCell % 8) {
-    //           this.gamePlay.showDamage(this.playerFirstCell, resultAttack)
-    //             .then(() => {
-    //               this.playerFirst.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-
-    //       if (this.turn === 'enemy') {
-    //         const filteredArray = radiusOneCell
-    //           .filter((item) => {
-    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //             }
-    //           });
-
-    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //         this.gamePlay.redrawPositions(this.characters);
-    //         this.turn = 'player';
-    //       }
-    //     }
-    //   } else if (Math.abs(enemyIndex - this.playerFirstCell) >= Math.abs(enemyIndex - this.playerSecondCell) && this.characters.indexOf(this.playerSecond) !== -1) {
-    //     if (enemyType === 'undead') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-    //       radiusOneCell.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-    //             .then(() => {
-    //               this.playerSecond.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-
-    //       if (this.turn === 'enemy') {
-    //         const filteredArray = radiusFourCells
-    //           .filter((item) => {
-    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //             }
-    //           });
-
-    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //         this.gamePlay.redrawPositions(this.characters);
-    //         this.turn = 'player';
-    //       }
-    //     } else if (enemyType === 'vampire') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-    //       radiusTwoCells.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-    //             .then(() => {
-    //               this.playerSecond.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-
-    //       if (this.turn === 'enemy') {
-    //         const filteredArray = radiusTwoCells
-    //           .filter((item) => {
-    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //             }
-    //           });
-
-    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //         this.gamePlay.redrawPositions(this.characters);
-    //         this.turn = 'player';
-    //       }
-    //     } else if (enemyType === 'daemon') {
-    //       const resultAttack = Math.max(enemyChar.attack - this.playerSecond.character.defence, enemyChar.attack * 0.1);
-    //       radiusFourCells.forEach((item) => {
-    //         if (item[0] === Math.floor(this.playerSecondCell / 8) && item[1] === this.playerSecondCell % 8) {
-    //           this.gamePlay.showDamage(this.playerSecondCell, resultAttack)
-    //             .then(() => {
-    //               this.playerSecond.character.health -= resultAttack;
-    //               this.characters.map((elem, pos) => {
-    //                 if (elem.character.health <= 0) {
-    //                   this.characters.splice(pos, 1);
-    //                   Array.from(this.gamePlay.boardEl.children)[elem.position].title = '';
-    //                 }
-    //               });
-    //               this.gamePlay.redrawPositions(this.characters);
-    //             });
-    //           this.turn = 'player';
-    //         }
-    //       });
-
-    //       if (this.turn === 'enemy') {
-    //         const filteredArray = radiusOneCell
-    //           .filter((item) => {
-    //             if (item[0] >= 0 && item[0] < 7 && item[1] >= 0 && item[1] < 7) {
-    //               return Array.from(this.gamePlay.boardEl.children)[item[0] * 8 + item[1]].querySelector('.character') === null;
-    //             }
-    //           });
-
-    //         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-
-    //         enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
-    //         this.gamePlay.redrawPositions(this.characters);
-    //         this.turn = 'player';
-    //       }
-    //     }
-    //   }
-    // }
+    }
   }
 }
