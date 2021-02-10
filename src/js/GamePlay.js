@@ -74,18 +74,16 @@ export default class GamePlay {
     }
 
     for (const position of positions) {
+      console.log(position.position, position.character.health);
       const cellEl = this.boardEl.children[position.position];
       const charEl = document.createElement('div');
       charEl.classList.add('character', position.character.type);
-
       const healthEl = document.createElement('div');
       healthEl.classList.add('health-level');
-
       const healthIndicatorEl = document.createElement('div');
       healthIndicatorEl.classList.add('health-level-indicator', `health-level-indicator-${calcHealthLevel(position.character.health)}`);
       healthIndicatorEl.style.width = `${position.character.health}%`;
       healthEl.appendChild(healthIndicatorEl);
-
       charEl.appendChild(healthEl);
       cellEl.appendChild(charEl);
     }
