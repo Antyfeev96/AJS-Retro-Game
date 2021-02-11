@@ -594,7 +594,6 @@ export default class GameController {
           this.turn = 'player';
         }
       }
-      console.log(this.playerTeam);
     }
   }
 }
