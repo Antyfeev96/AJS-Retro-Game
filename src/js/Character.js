@@ -22,6 +22,64 @@ export class Swordsman extends Character {
     this.defence = 10;
     this.health = 50;
     this.type = 'swordsman';
+
+    this[Symbol.iterator] = () => {
+      const character = this;
+      let current = 1;
+      console.log(current);
+
+      return {
+        next() {
+          if (current === 1) {
+            console.log(current);
+            current = 2;
+            console.log(current);
+            return {
+              done: false,
+              value: character.level,
+            };
+          }
+
+          if (current === 2) {
+            current = 3;
+            return {
+              done: false,
+              value: character.attack,
+            };
+          }
+
+          if (current === 3) {
+            current = 4;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === 4) {
+            current = 5;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === 5) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true,
+            };
+          }
+        },
+      };
+    };
   }
 }
 
@@ -35,43 +93,46 @@ export class Bowman extends Character {
 
     this[Symbol.iterator] = () => {
       const character = this;
-      let current = this.level;
+      let current = 1;
+      console.log(current);
 
       return {
         next() {
-          if (current === character.level) {
-            current = character.attack + 'attack';
+          if (current === 1) {
+            console.log(current);
+            current = 2;
+            console.log(current);
             return {
               done: false,
               value: character.level,
             };
           }
 
-          if (current === '25attack') {
-            current = character.defence;
+          if (current === 2) {
+            current = 3;
             return {
               done: false,
               value: character.attack,
             };
           }
 
-          if (current === character.defence) {
-            current = character.health;
+          if (current === 3) {
+            current = 4;
             return {
               done: false,
               value: character.defence,
             };
           }
 
-          if (current === character.health) {
-            current = character.type;
+          if (current === 4) {
+            current = 5;
             return {
               done: false,
               value: character.health,
             };
           }
 
-          if (current === character.type) {
+          if (current === 5) {
             current = 'stop';
             return {
               done: false,
@@ -97,6 +158,61 @@ export class Magician extends Character {
     this.defence = 40;
     this.health = 50;
     this.type = 'magician';
+
+    this[Symbol.iterator] = () => {
+      const character = this;
+      let current = 1;
+
+      return {
+        next() {
+          if (current === 1) {
+            current = 2;
+            return {
+              done: false,
+              value: character.level,
+            };
+          }
+
+          if (current === 2) {
+            current = 3;
+            return {
+              done: false,
+              value: character.attack,
+            };
+          }
+
+          if (current === 3) {
+            current = 4;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === 4) {
+            current = 5;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === 5) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true,
+            };
+          }
+        },
+      };
+    };
   }
 }
 
@@ -107,6 +223,61 @@ export class Undead extends Character {
     this.defence = 10;
     this.health = 50;
     this.type = 'undead';
+
+    this[Symbol.iterator] = () => {
+      const character = this;
+      let current = 1;
+
+      return {
+        next() {
+          if (current === 1) {
+            current = 2;
+            return {
+              done: false,
+              value: character.level,
+            };
+          }
+
+          if (current === 2) {
+            current = 3;
+            return {
+              done: false,
+              value: character.attack,
+            };
+          }
+
+          if (current === 3) {
+            current = 4;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === 4) {
+            current = 5;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === 5) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true,
+            };
+          }
+        },
+      };
+    };
   }
 }
 
@@ -117,6 +288,61 @@ export class Vampire extends Character {
     this.defence = 25;
     this.health = 50;
     this.type = 'vampire';
+
+    this[Symbol.iterator] = () => {
+      const character = this;
+      let current = 1;
+
+      return {
+        next() {
+          if (current === 1) {
+            current = 2;
+            return {
+              done: false,
+              value: character.level,
+            };
+          }
+
+          if (current === 2) {
+            current = 3;
+            return {
+              done: false,
+              value: character.attack,
+            };
+          }
+
+          if (current === 3) {
+            current = 4;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === 4) {
+            current = 5;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === 5) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true,
+            };
+          }
+        },
+      };
+    };
   }
 }
 
@@ -127,5 +353,60 @@ export class Daemon extends Character {
     this.defence = 40;
     this.health = 50;
     this.type = 'daemon';
+
+    this[Symbol.iterator] = () => {
+      const character = this;
+      let current = 1;
+
+      return {
+        next() {
+          if (current === 1) {
+            current = 2;
+            return {
+              done: false,
+              value: character.level,
+            };
+          }
+
+          if (current === 2) {
+            current = 3;
+            return {
+              done: false,
+              value: character.attack,
+            };
+          }
+
+          if (current === 3) {
+            current = 4;
+            return {
+              done: false,
+              value: character.defence,
+            };
+          }
+
+          if (current === 4) {
+            current = 5;
+            return {
+              done: false,
+              value: character.health,
+            };
+          }
+
+          if (current === 5) {
+            current = 'stop';
+            return {
+              done: false,
+              value: character.type,
+            };
+          }
+
+          if (current === 'stop') {
+            return {
+              done: true,
+            };
+          }
+        },
+      };
+    };
   }
 }
