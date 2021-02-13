@@ -123,7 +123,8 @@ export default class GameController {
           this.gamePlay.deselectCell(index);
         } else {
           const cell = cells.indexOf(this.gamePlay.boardEl.querySelector('.selected-yellow'));
-          const attacker = this.playerFirst.position === cell ? this.playerFirst.character : this.playerSecond.character;
+          const attackPlayer = this.playerTeam.find((player) => player.position === cell);
+          const attacker = attackPlayer.character;
           this.gamePlay.deselectCell(cell);
           this.gamePlay.selectCell(index);
           if (cells[index].querySelector('.character') === null) {
@@ -145,10 +146,10 @@ export default class GameController {
                 const resultAttack = Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1);
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
-                    if (char.character.type === 'undead' || char.character.type === 'vampire') {
+                    if (attacker.type === 'swordsman' || attacker.type === 'bowman') {
                       char.character.health -= resultAttack;
-                    } else {
-                      const log = Math.floor(Math.log2(Math.abs(Math.floor(index / 8) - Math.floor(char.position / 8))));
+                    } else if (attacker.type === 'magician') {
+                      const log = Math.floor(Math.log2(Math.abs(Math.floor(attacker.position / 8) - Math.floor(char.position / 8))));
                       char.character.health -= resultAttack + log;
                     }
                     [this.characters, this.enemyTeam].forEach((array) => {
