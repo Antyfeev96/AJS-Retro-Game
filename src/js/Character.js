@@ -26,14 +26,11 @@ export class Swordsman extends Character {
     this[Symbol.iterator] = () => {
       const character = this;
       let current = 1;
-      console.log(current);
 
       return {
         next() {
           if (current === 1) {
-            console.log(current);
             current = 2;
-            console.log(current);
             return {
               done: false,
               value: character.level,
@@ -94,14 +91,11 @@ export class Bowman extends Character {
     this[Symbol.iterator] = () => {
       const character = this;
       let current = 1;
-      console.log(current);
 
       return {
         next() {
           if (current === 1) {
-            console.log(current);
             current = 2;
-            console.log(current);
             return {
               done: false,
               value: character.level,

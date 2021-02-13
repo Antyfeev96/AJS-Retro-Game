@@ -252,3 +252,20 @@ body {
     font-size: 1.5rem;
   }
 }
+
+.scores {
+  margin-left: 50px;
+  height: 520px;
+  display: grid;
+  background-color: white;
+  grid-template-rows: 1fr 7fr;
+  grid-template-columns: 200px;
+  border-radius: 25px;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+}

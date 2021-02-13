@@ -10,10 +10,8 @@ import Team from './Team';
  */
 export function* characterGenerator(allowedTypes, maxLevel) {
   // TODO: write logic here
-  for (const item in allowedTypes) {
-    const char = Math.floor(Math.random() * allowedTypes.length);
-    yield new allowedTypes[char]();
-  }
+  const char = Math.floor(Math.random() * allowedTypes.length);
+  yield new allowedTypes[char]();
 }
 
 export function generateTeam(allowedTypes, maxLevel, characterCount) {

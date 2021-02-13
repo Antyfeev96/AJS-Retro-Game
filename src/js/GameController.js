@@ -1,10 +1,12 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-mixed-operators */
 /* eslint-disable no-unused-expressions */
 /* eslint-disable max-len */
 /* eslint-disable object-curly-newline */
 /* eslint-disable class-methods-use-this */
 import themes from './themes';
-import { generateTeam } from './generators';
-import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon, Character } from './Character';
+import { characterGenerator, generateTeam } from './generators';
+import Character, { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
 import PositionedCharacter from './PositionedCharacter';
 import GamePlay from './GamePlay';
 
@@ -19,12 +21,12 @@ export default class GameController {
 
     // player cells
     this.playerFirstCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
-    this.playerCells.splice(this.playerCells.indexOf(this.playerFirstCell, 0), 1);
+    this.playerCells.splice(this.playerCells.indexOf(this.playerFirstCell), 1);
     this.playerSecondCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
 
     // enemy cells
     this.enemyFirstCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
-    this.enemyCells.splice(this.enemyCells.indexOf(this.enemyFirstCell, 0), 1);
+    this.enemyCells.splice(this.enemyCells.indexOf(this.enemyFirstCell), 1);
     this.enemySecondCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
 
     // create characters
@@ -34,17 +36,19 @@ export default class GameController {
     this.enemyFirst = new PositionedCharacter(this.teams[1][0], this.enemyFirstCell);
     this.enemySecond = new PositionedCharacter(this.teams[1][1], this.enemySecondCell);
 
-    this.characters = [this.playerFirst, this.playerSecond, this.enemyFirst, this.enemySecond];
     this.playerTeam = [this.playerFirst, this.playerSecond];
     this.enemyTeam = [this.enemyFirst, this.enemySecond];
+    this.characters = [...this.playerTeam, ...this.enemyTeam];
     this.turn = '';
+    this.level = '';
   }
 
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
-    this.gamePlay.drawUi(themes.prairie);
-
+    this.level = 1;
+    this.theme = themes.prairie;
+    this.gamePlay.drawUi(this.theme);
     // drawing
     this.gamePlay.redrawPositions(this.characters);
 
@@ -53,6 +57,48 @@ export default class GameController {
     this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
     this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
     this.turn = 'player';
+  }
+
+  generatePlayer() {
+    const array = [Swordsman, Bowman, Magician];
+    const generator = characterGenerator(array, 4);
+    const char = generator.next().value;
+    const cells = this.playerCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
+    const charPos = cells[Math.floor(Math.random() * cells.length)];
+    const player = new PositionedCharacter(char, charPos);
+    this.playerTeam.push(player);
+  }
+
+  generateEnemyTeam() {
+    const array = [Undead, Vampire, Daemon];
+    if (this.level === 2) {
+      for (let i = 0; i < this.playerTeam.length; i += 1) {
+        const generator = characterGenerator(array, 4);
+        const char = generator.next().value;
+        const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
+        const charPos = cells[Math.floor(Math.random() * cells.length)];
+        const player = new PositionedCharacter(char, charPos);
+        this.enemyTeam.push(player);
+      }
+    }
+  }
+
+  increaseLevel() {
+    this.level += 1;
+    this.theme = this.level === 1 ? themes.prairie
+      : this.level === 2 ? themes.desert
+        : this.level === 3 ? themes.arctic
+          : themes.mountain;
+    this.gamePlay.drawUi(this.theme);
+    for (const player of this.playerTeam) {
+      player.character.level += 1;
+      player.character.attack = Math.max(player.character.attack, player.character.attack * (1.8 - player.character.health / 100));
+      player.character.defence = Math.max(player.character.defence, player.character.defence * (1.8 - player.character.health / 100));
+      player.character.health += 80;
+      if (player.character.health > 100) {
+        player.character.health = 100;
+      }
+    }
   }
 
   onCellClick(index) {
@@ -81,14 +127,11 @@ export default class GameController {
           this.gamePlay.deselectCell(cell);
           this.gamePlay.selectCell(index);
           if (cells[index].querySelector('.character') === null) {
-            if (cell === this.playerFirst.position) {
-              Array.from(this.gamePlay.boardEl.children)[this.playerFirstCell].title = '';
-              this.playerFirst.position = index;
-              this.playerFirstCell = index;
-            } else if (cell === this.playerSecond.position) {
-              Array.from(this.gamePlay.boardEl.children)[this.playerSecondCell].title = '';
-              this.playerSecond.position = index;
-              this.playerSecondCell = index;
+            for (const player of this.playerTeam) {
+              if (cell === player.position) {
+                Array.from(this.gamePlay.boardEl.children)[cell].title = '';
+                player.position = index;
+              }
             }
             this.gamePlay.deselectCell(index);
             this.gamePlay.setCursor('auto');
@@ -96,13 +139,18 @@ export default class GameController {
             this.turn = 'enemy';
             this.enemyTurn();
           } else if (charCell.classList.contains('undead') || charCell.classList.contains('vampire') || charCell.classList.contains('daemon')) {
-            [this.enemyFirst, this.enemySecond].forEach((item) => {
-              if (item.position === index) {
+            for (const char of this.enemyTeam) {
+              if (char.position === index) {
                 this.gamePlay.deselectCell(index);
-                const resultAttack = Math.max(attacker.attack - item.character.defence, attacker.attack * 0.1);
+                const resultAttack = Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1);
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
-                    item.character.health -= resultAttack;
+                    if (char.character.type === 'undead' || char.character.type === 'vampire') {
+                      char.character.health -= resultAttack;
+                    } else {
+                      const log = Math.floor(Math.log2(Math.abs(Math.floor(index / 8) - Math.floor(char.position / 8))));
+                      char.character.health -= resultAttack + log;
+                    }
                     [this.characters, this.enemyTeam].forEach((array) => {
                       array.map((elem, pos) => {
                         if (elem.character.health <= 0) {
@@ -112,9 +160,11 @@ export default class GameController {
                       });
                     });
                     if (this.enemyTeam.length === 0) {
-                      this.gamePlay.redrawPositions(this.playerTeam);
-                      alert('You win!');
-                      this.turn = 'gameover';
+                      this.increaseLevel();
+                      this.generatePlayer();
+                      this.generateEnemyTeam();
+                      this.characters = [...this.playerTeam, ...this.enemyTeam];
+                      this.gamePlay.redrawPositions(this.characters);
                     } else {
                       this.gamePlay.redrawPositions(this.characters);
                       this.turn = 'enemy';
@@ -122,7 +172,7 @@ export default class GameController {
                     }
                   });
               }
-            });
+            }
           }
         }
       }
@@ -292,23 +342,23 @@ export default class GameController {
           if (char === 'swordsman'
           || char === 'bowman'
           || char === 'magician') {
-            this.allowedArr.forEach((item) => {
-              if (item.type === char) {
-                this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+            for (const player of this.playerTeam) {
+              if (player.character.type === char) {
+                const playerChar = player.character;
+                this.gamePlay.showCellTooltip(`🎖${playerChar.level}⚔${playerChar.attack}🛡${playerChar.defence}❤${playerChar.health}`, index);
+                this.gamePlay.setCursor('pointer');
               }
-            });
-            this.gamePlay.setCursor('pointer');
-          }
-
-          if (char === 'undead'
+            }
+          } else if (char === 'undead'
           || char === 'vampire'
           || char === 'daemon') {
-            this.allowedArr.forEach((item) => {
-              if (item.type === char) {
-                this.gamePlay.showCellTooltip(`🎖${item.level}⚔${item.attack}🛡${item.defence}❤${item.health}`, index);
+            for (const enemy of this.enemyTeam) {
+              if (enemy.character.type === char) {
+                const enemyChar = enemy.character;
+                this.gamePlay.showCellTooltip(`🎖${enemyChar.level}⚔${enemyChar.attack}🛡${enemyChar.defence}❤${enemyChar.health}`, index);
+                this.gamePlay.setCursor('not-allowed');
               }
-            });
-            this.gamePlay.setCursor('not-allowed');
+            }
           }
         }
       }
@@ -462,9 +512,10 @@ export default class GameController {
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
         const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1);
+        const log = Math.floor(Math.log2(Math.abs(Math.floor(enemy.position / 8) - Math.floor(player.position / 8))));
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack;
+            player.character.health -= resultAttack + log;
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
