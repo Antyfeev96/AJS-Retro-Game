@@ -6,7 +6,7 @@
 /* eslint-disable class-methods-use-this */
 import themes from './themes';
 import { characterGenerator, generateTeam } from './generators';
-import Character, { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
+import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
 import PositionedCharacter from './PositionedCharacter';
 import GamePlay from './GamePlay';
 
@@ -21,16 +21,16 @@ export default class GameController {
 
     // player cells
     this.playerFirstCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
-    this.playerCells.splice(this.playerCells.indexOf(this.playerFirstCell), 1);
-    this.playerSecondCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
+    this.playerFilteredCells = this.playerCells.filter((cell) => cell !== this.playerFirstCell);
+    this.playerSecondCell = this.playerFilteredCells[Math.floor(Math.random() * this.playerFilteredCells.length)];
 
     // enemy cells
     this.enemyFirstCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
-    this.enemyCells.splice(this.enemyCells.indexOf(this.enemyFirstCell), 1);
-    this.enemySecondCell = this.enemyCells[Math.floor(Math.random() * this.enemyCells.length)];
+    this.enemyFilteredCells = this.enemyCells.filter((cell) => cell !== this.enemyFirstCell);
+    this.enemySecondCell = this.enemyFilteredCells[Math.floor(Math.random() * this.enemyFilteredCells.length)];
 
     // create characters
-    this.teams = generateTeam(this.allowedArr, 4, 10);
+    this.teams = generateTeam(this.allowedArr, 1, 2);
     this.playerFirst = new PositionedCharacter(this.teams[0][0], this.playerFirstCell);
     this.playerSecond = new PositionedCharacter(this.teams[0][1], this.playerSecondCell);
     this.enemyFirst = new PositionedCharacter(this.teams[1][0], this.enemyFirstCell);
@@ -59,9 +59,9 @@ export default class GameController {
     this.turn = 'player';
   }
 
-  generatePlayer() {
+  generatePlayer(level) {
     const array = [Swordsman, Bowman, Magician];
-    const generator = characterGenerator(array, 4);
+    const generator = characterGenerator(array, level);
     const char = generator.next().value;
     const cells = this.playerCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
     const charPos = cells[Math.floor(Math.random() * cells.length)];
@@ -71,15 +71,22 @@ export default class GameController {
 
   generateEnemyTeam() {
     const array = [Undead, Vampire, Daemon];
-    if (this.level === 2) {
-      for (let i = 0; i < this.playerTeam.length; i += 1) {
-        const generator = characterGenerator(array, 4);
-        const char = generator.next().value;
-        const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
-        const charPos = cells[Math.floor(Math.random() * cells.length)];
-        const player = new PositionedCharacter(char, charPos);
-        this.enemyTeam.push(player);
-      }
+    const lvlArray = this.level === 2 ? [1, 2]
+      : this.level === 3 ? [1, 2, 3]
+        : [1, 2, 3, 4];
+    for (let i = 0; i < this.playerTeam.length; i += 1) {
+      const level = lvlArray[Math.floor(Math.random() * lvlArray.length)];
+      const generator = characterGenerator(array, level);
+      const char = generator.next().value;
+      char.health = 100;
+      char.attack *= 1.3 ** (level - 1);
+      char.attack.toFixed(2);
+      char.defence *= 1.3 ** (level - 1);
+      char.defence.toFixed(2);
+      const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
+      const charPos = cells[Math.floor(Math.random() * cells.length)];
+      const player = new PositionedCharacter(char, charPos);
+      this.enemyTeam.push(player);
     }
   }
 
@@ -143,15 +150,37 @@ export default class GameController {
             for (const char of this.enemyTeam) {
               if (char.position === index) {
                 this.gamePlay.deselectCell(index);
-                const resultAttack = Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1);
+                const deltaPos = Math.abs(char.position - attackPlayer.position);
+
+                let modify;
+
+                switch (deltaPos) {
+                  case 2:
+                  case 14:
+                  case 16:
+                  case 18:
+                    modify = 0.9;
+                    break;
+                  case 3:
+                  case 21:
+                  case 24:
+                  case 27:
+                    modify = 0.8;
+                    break;
+                  case 4:
+                  case 28:
+                  case 32:
+                  case 36:
+                    modify = 0.7;
+                    break;
+                  default:
+                    modify = 1;
+                }
+                const resultAttack = Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1) * modify;
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
-                    if (attacker.type === 'swordsman' || attacker.type === 'bowman') {
-                      char.character.health -= resultAttack;
-                    } else if (attacker.type === 'magician') {
-                      const log = Math.floor(Math.log2(Math.abs(Math.floor(attacker.position / 8) - Math.floor(char.position / 8))));
-                      char.character.health -= resultAttack + log;
-                    }
+                    char.character.health -= resultAttack;
+                    char.character.health.toFixed(2);
                     [this.characters, this.enemyTeam].forEach((array) => {
                       array.map((elem, pos) => {
                         if (elem.character.health <= 0) {
@@ -162,7 +191,7 @@ export default class GameController {
                     });
                     if (this.enemyTeam.length === 0) {
                       this.increaseLevel();
-                      this.generatePlayer();
+                      this.generatePlayer(this.level - 1);
                       this.generateEnemyTeam();
                       this.characters = [...this.playerTeam, ...this.enemyTeam];
                       this.gamePlay.redrawPositions(this.characters);
@@ -344,7 +373,7 @@ export default class GameController {
           || char === 'bowman'
           || char === 'magician') {
             for (const player of this.playerTeam) {
-              if (player.character.type === char) {
+              if (player.position === index) {
                 const playerChar = player.character;
                 this.gamePlay.showCellTooltip(`🎖${playerChar.level}⚔${playerChar.attack}🛡${playerChar.defence}❤${playerChar.health}`, index);
                 this.gamePlay.setCursor('pointer');
@@ -354,7 +383,7 @@ export default class GameController {
           || char === 'vampire'
           || char === 'daemon') {
             for (const enemy of this.enemyTeam) {
-              if (enemy.character.type === char) {
+              if (enemy.position === index) {
                 const enemyChar = enemy.character;
                 this.gamePlay.showCellTooltip(`🎖${enemyChar.level}⚔${enemyChar.attack}🛡${enemyChar.defence}❤${enemyChar.health}`, index);
                 this.gamePlay.setCursor('not-allowed');
@@ -394,6 +423,33 @@ export default class GameController {
     const xP = Math.floor(player.position / 8);
     const yP = player.position % 8;
     const playerChar = player.character;
+
+    const deltaPos = Math.abs(enemy.position - player.position);
+
+    let modify;
+
+    switch (deltaPos) {
+      case 2:
+      case 14:
+      case 16:
+      case 18:
+        modify = 0.9;
+        break;
+      case 3:
+      case 21:
+      case 24:
+      case 27:
+        modify = 0.8;
+        break;
+      case 4:
+      case 28:
+      case 32:
+      case 36:
+        modify = 0.7;
+        break;
+      default:
+        modify = 1;
+    }
 
     const radiusOneCell = [
       [x + 1, y],
@@ -438,6 +494,7 @@ export default class GameController {
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
             player.character.health -= resultAttack;
+            player.character.health.toFixed(1);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -473,10 +530,11 @@ export default class GameController {
       const cell = radiusTwoCells.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
-        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1);
+        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify;
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack;
+            player.character.health -= resultAttack + modify;
+            player.character.health.toFixed(1);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -512,11 +570,11 @@ export default class GameController {
       const cell = radiusFourCells.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
-        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1);
-        const log = Math.floor(Math.log2(Math.abs(Math.floor(enemy.position / 8) - Math.floor(player.position / 8))));
+        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify;
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack + log;
+            player.character.health -= resultAttack + modify;
+            player.character.health.toFixed(1);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {

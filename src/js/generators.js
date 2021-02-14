@@ -11,7 +11,7 @@ import Team from './Team';
 export function* characterGenerator(allowedTypes, maxLevel) {
   // TODO: write logic here
   const char = Math.floor(Math.random() * allowedTypes.length);
-  yield new allowedTypes[char]();
+  yield new allowedTypes[char](maxLevel);
 }
 
 export function generateTeam(allowedTypes, maxLevel, characterCount) {
@@ -23,13 +23,13 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
   do {
     const generator = characterGenerator(allowedTypes, maxLevel);
     const char = generator.next();
-    if (playerTeam.array.length < 2 && (char.value.type === 'swordsman' || char.value.type === 'bowman')) {
+    if (playerTeam.array.length < characterCount && (char.value.type === 'swordsman' || char.value.type === 'bowman')) {
       playerTeam.add(char.value);
     }
-    if (enemyTeam.array.length < 2 && (char.value.type === 'undead' || char.value.type === 'vampire')) {
+    if (enemyTeam.array.length < characterCount && (char.value.type === 'undead' || char.value.type === 'vampire')) {
       enemyTeam.add(char.value);
     }
-  } while (playerTeam.array.length < 2 || enemyTeam.array.length < 2);
+  } while (playerTeam.array.length < characterCount || enemyTeam.array.length < characterCount);
 
   return [playerTeam.array, enemyTeam.array];
 }
