@@ -79,10 +79,8 @@ export default class GameController {
       const generator = characterGenerator(array, level);
       const char = generator.next().value;
       char.health = 100;
-      char.attack *= 1.3 ** (level - 1);
-      char.attack.toFixed(2);
-      char.defence *= 1.3 ** (level - 1);
-      char.defence.toFixed(2);
+      char.attack = +char.attack * 1.3 ** (level - 1).toFixed(2);
+      char.defence = +char.defence * 1.3 ** (level - 1).toFixed(2);
       const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
       const charPos = cells[Math.floor(Math.random() * cells.length)];
       const player = new PositionedCharacter(char, charPos);
@@ -99,8 +97,8 @@ export default class GameController {
     this.gamePlay.drawUi(this.theme);
     for (const player of this.playerTeam) {
       player.character.level += 1;
-      player.character.attack = Math.max(player.character.attack, player.character.attack * (1.8 - player.character.health / 100));
-      player.character.defence = Math.max(player.character.defence, player.character.defence * (1.8 - player.character.health / 100));
+      player.character.attack = +Math.max(player.character.attack, player.character.attack * (1.8 - player.character.health / 100)).toFixed(2);
+      player.character.defence = +Math.max(player.character.defence, player.character.defence * (1.8 - player.character.health / 100)).toFixed(2);
       player.character.health += 80;
       if (player.character.health > 100) {
         player.character.health = 100;
@@ -176,11 +174,10 @@ export default class GameController {
                   default:
                     modify = 1;
                 }
-                const resultAttack = Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1) * modify;
+                const resultAttack = +Math.round(Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1) * modify).toFixed(2);
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
                     char.character.health -= resultAttack;
-                    char.character.health.toFixed(2);
                     [this.characters, this.enemyTeam].forEach((array) => {
                       array.map((elem, pos) => {
                         if (elem.character.health <= 0) {
@@ -490,11 +487,10 @@ export default class GameController {
       const cell = radiusOneCell.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
-        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1);
+        const resultAttack = +Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1).toFixed(2);
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack;
-            player.character.health.toFixed(1);
+            player.character.health = +(player.character.health - resultAttack).toFixed(2);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -530,11 +526,10 @@ export default class GameController {
       const cell = radiusTwoCells.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
-        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify;
+        const resultAttack = +(Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify).toFixed(2);
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack + modify;
-            player.character.health.toFixed(1);
+            player.character.health = +(player.character.health - resultAttack).toFixed(2);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -570,11 +565,10 @@ export default class GameController {
       const cell = radiusFourCells.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
         const cellPos = cell[0] * 8 + cell[1];
-        const resultAttack = Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify;
+        const resultAttack = +(Math.max(enemyChar.attack - playerChar.defence, enemyChar.attack * 0.1) * modify).toFixed(2);
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
-            player.character.health -= resultAttack + modify;
-            player.character.health.toFixed(1);
+            player.character.health = +(player.character.health - resultAttack).toFixed(2);
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
