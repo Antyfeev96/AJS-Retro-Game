@@ -79,9 +79,15 @@ export default class GameController {
       const generator = characterGenerator(array, level);
       const char = generator.next().value;
       char.health = 100;
-      char.attack = +char.attack * 1.3 ** (level - 1).toFixed(2);
-      char.defence = +char.defence * 1.3 ** (level - 1).toFixed(2);
+      char.attack = +(char.attack * 1.3 ** (level - 1)).toFixed(2);
+      char.defence = +(char.defence * 1.3 ** (level - 1)).toFixed(2);
       const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
+      // for (const cell of this.enemyCells) {
+      //   if (this.characters.find((player) => player.position === cell)) {
+      //     this.enemyCells.splice(cell, 1);
+      //   }
+      // }
+      console.log(this.enemyCells);
       const charPos = cells[Math.floor(Math.random() * cells.length)];
       const player = new PositionedCharacter(char, charPos);
       this.enemyTeam.push(player);
@@ -93,7 +99,8 @@ export default class GameController {
     this.theme = this.level === 1 ? themes.prairie
       : this.level === 2 ? themes.desert
         : this.level === 3 ? themes.arctic
-          : themes.mountain;
+          : this.level === 4 ? themes.mountain
+            : Math.floor(Math.random() * Object.values(themes).length);
     this.gamePlay.drawUi(this.theme);
     for (const player of this.playerTeam) {
       player.character.level += 1;
@@ -174,10 +181,10 @@ export default class GameController {
                   default:
                     modify = 1;
                 }
-                const resultAttack = +Math.round(Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1) * modify).toFixed(2);
+                const resultAttack = +(Math.max(attacker.attack - char.character.defence, attacker.attack * 0.1) * modify).toFixed(2);
                 this.gamePlay.showDamage(index, resultAttack)
                   .then(() => {
-                    char.character.health -= resultAttack;
+                    char.character.health = +(char.character.health - resultAttack).toFixed(2);
                     [this.characters, this.enemyTeam].forEach((array) => {
                       array.map((elem, pos) => {
                         if (elem.character.health <= 0) {
