@@ -63,17 +63,25 @@ export default class GameController {
     const array = [Swordsman, Bowman, Magician];
     const generator = characterGenerator(array, level);
     const char = generator.next().value;
-    const cells = this.playerCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
-    const charPos = cells[Math.floor(Math.random() * cells.length)];
+    char.attack = +(char.attack * 1.3 ** (level - 1)).toFixed(2);
+    char.defence = +(char.defence * 1.3 ** (level - 1)).toFixed(2);
+    const posArr = [];
+    for (const characters of this.characters) {
+      posArr.push(characters.position);
+    }
+    const filtered = this.playerCells.filter((cell) => posArr.findIndex((item) => item === cell) === -1);
+    const charPos = filtered[Math.floor(Math.random() * filtered.length)];
     const player = new PositionedCharacter(char, charPos);
     this.playerTeam.push(player);
+    this.characters.push(player);
   }
 
   generateEnemyTeam() {
     const array = [Undead, Vampire, Daemon];
     const lvlArray = this.level === 2 ? [1, 2]
       : this.level === 3 ? [1, 2, 3]
-        : [1, 2, 3, 4];
+        : this.level === 4 ? [1, 2, 3, 4]
+          : [this.level - 3, this.level - 2, this.level - 1, this.level];
     for (let i = 0; i < this.playerTeam.length; i += 1) {
       const level = lvlArray[Math.floor(Math.random() * lvlArray.length)];
       const generator = characterGenerator(array, level);
@@ -81,16 +89,15 @@ export default class GameController {
       char.health = 100;
       char.attack = +(char.attack * 1.3 ** (level - 1)).toFixed(2);
       char.defence = +(char.defence * 1.3 ** (level - 1)).toFixed(2);
-      const cells = this.enemyCells.filter((cell) => this.gamePlay.boardEl.children[cell].querySelector('.character') === null);
-      // for (const cell of this.enemyCells) {
-      //   if (this.characters.find((player) => player.position === cell)) {
-      //     this.enemyCells.splice(cell, 1);
-      //   }
-      // }
-      console.log(this.enemyCells);
-      const charPos = cells[Math.floor(Math.random() * cells.length)];
+      const posArr = [];
+      for (const characters of this.characters) {
+        posArr.push(characters.position);
+      }
+      const filtered = this.enemyCells.filter((cell) => posArr.findIndex((item) => item === cell) === -1);
+      const charPos = filtered[Math.floor(Math.random() * filtered.length)];
       const player = new PositionedCharacter(char, charPos);
       this.enemyTeam.push(player);
+      this.characters.push(player);
     }
   }
 
@@ -100,7 +107,7 @@ export default class GameController {
       : this.level === 2 ? themes.desert
         : this.level === 3 ? themes.arctic
           : this.level === 4 ? themes.mountain
-            : Math.floor(Math.random() * Object.values(themes).length);
+            : Object.values(themes)[Math.floor(Math.random() * Object.values(themes).length)];
     this.gamePlay.drawUi(this.theme);
     for (const player of this.playerTeam) {
       player.character.level += 1;
