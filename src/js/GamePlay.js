@@ -38,10 +38,24 @@ export default class GamePlay {
       <div class="board-container">
         <div data-id="board" class="board"></div>
         <div data-id="scores" class="scores">
-          <div class="title">
-            <span>Scoreboard</span>
+          <div class="level">
+            <span>level: 4</span>
           </div>
-          <div class="scoresboard"></div>
+          <div class="points">
+            <span>points: 0</span>
+          </div>
+          <div class="top-points">
+            <div class="position">0</div>
+            <div class="position">1</div>
+            <div class="position">2</div>
+            <div class="position">3</div>
+            <div class="position">4</div>
+            <div class="position">5</div>
+            <div class="position">6</div>
+            <div class="position">7</div>
+            <div class="position">8</div>
+            <div class="position">9</div>
+          </div>
         </div>
       </div>
     `;

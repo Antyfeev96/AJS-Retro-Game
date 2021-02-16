@@ -258,14 +258,38 @@ body {
   height: 520px;
   display: grid;
   background-color: white;
-  grid-template-rows: 1fr 7fr;
+  grid-template-rows: 1fr 1fr 7fr;
   grid-template-columns: 200px;
   border-radius: 25px;
 }
 
-.title {
+.level {
   display: flex;
   justify-content: center;
   align-items: center;
   text-transform: uppercase;
+  border-bottom: 5px dotted teal;
+}
+
+.points {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  border-bottom: 5px dotted teal;
+}
+
+.position {
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+.position:nth-of-type(n + 1) {
+  border-bottom: 5px dashed teal;
+}
+
+.position:nth-of-type(10) {
+  border-bottom: none;
 }
