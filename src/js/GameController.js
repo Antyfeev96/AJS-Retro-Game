@@ -9,6 +9,7 @@ import { characterGenerator, generateTeam } from './generators';
 import { Swordsman, Bowman, Magician, Undead, Vampire, Daemon } from './Character';
 import PositionedCharacter from './PositionedCharacter';
 import GamePlay from './GamePlay';
+import GameState from './GameState';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -20,9 +21,38 @@ export default class GameController {
     this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
     this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
     this.gamePlay.addNewGameListener(() => this.onNewGameClick());
+    this.gamePlay.addSaveGameListener(() => this.onSaveGameClick({
+      level: this.level,
+      theme: this.theme,
+      chars: this.characters,
+      playerTeam: this.playerTeam,
+      enemyTeam: this.enemyTeam,
+    }));
+    this.gamePlay.addLoadGameListener(() => this.onLoadGameClick());
 
     this.playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     this.enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+  }
+
+  onNewGameClick() {
+    this.init();
+  }
+
+  onSaveGameClick(obj) {
+    this.stateService.clear();
+    this.stateService.save(GameState.from(obj));
+  }
+
+  onLoadGameClick() {
+    const data = this.stateService.load();
+    console.log(data);
+    this.level = data.level;
+    this.theme = data.theme;
+    this.characters = data.chars;
+    this.playerTeam = data.playerTeam;
+    this.enemyTeam = data.enemyTeam;
+    this.gamePlay.drawUi(this.theme);
+    this.gamePlay.redrawPositions(this.characters);
   }
 
   init() {
@@ -119,10 +149,6 @@ export default class GameController {
     }
   }
 
-  onNewGameClick() {
-    this.init();
-  }
-
   onCellClick(index) {
     // TODO: react to click
     if (this.turn === 'player') {
@@ -150,12 +176,14 @@ export default class GameController {
           this.gamePlay.deselectCell(cell);
           this.gamePlay.selectCell(index);
           if (cells[index].querySelector('.character') === null) {
-            for (const player of this.playerTeam) {
-              if (cell === player.position) {
-                Array.from(this.gamePlay.boardEl.children)[cell].title = '';
-                player.position = index;
+            [this.playerTeam, this.characters].forEach((array) => {
+              for (const player of array) {
+                if (cell === player.position) {
+                  Array.from(this.gamePlay.boardEl.children)[cell].title = '';
+                  player.position = index;
+                }
               }
-            }
+            });
             this.gamePlay.deselectCell(index);
             this.gamePlay.setCursor('auto');
             this.gamePlay.redrawPositions(this.characters);
@@ -574,7 +602,13 @@ export default class GameController {
         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
         Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
-        enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+        [this.characters, this.enemyTeam].forEach((array) => {
+          for (const char of array) {
+            if (char.position === enemy.position) {
+              char.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            }
+          }
+        });
         this.gamePlay.redrawPositions(this.characters);
         this.turn = 'player';
       }
