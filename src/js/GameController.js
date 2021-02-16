@@ -16,9 +16,18 @@ export default class GameController {
     this.stateService = stateService;
     this.allowedArr = [Bowman, Swordsman, Undead, Vampire];
 
+    this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
+    this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
+    this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
+    this.gamePlay.addNewGameListener(() => this.onNewGameClick());
+
     this.playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     this.enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+  }
 
+  init() {
+    // TODO: add event listeners to gamePlay events
+    // TODO: load saved stated from stateService
     // player cells
     this.playerFirstCell = this.playerCells[Math.floor(Math.random() * this.playerCells.length)];
     this.playerFilteredCells = this.playerCells.filter((cell) => cell !== this.playerFirstCell);
@@ -39,13 +48,6 @@ export default class GameController {
     this.playerTeam = [this.playerFirst, this.playerSecond];
     this.enemyTeam = [this.enemyFirst, this.enemySecond];
     this.characters = [...this.playerTeam, ...this.enemyTeam];
-    this.turn = '';
-    this.level = '';
-  }
-
-  init() {
-    // TODO: add event listeners to gamePlay events
-    // TODO: load saved stated from stateService
     this.level = 1;
     this.theme = themes.prairie;
     this.gamePlay.drawUi(this.theme);
@@ -53,9 +55,6 @@ export default class GameController {
     this.gamePlay.redrawPositions(this.characters);
 
     // adding eventListeners
-    this.gamePlay.addCellEnterListener((event) => this.onCellEnter(event));
-    this.gamePlay.addCellClickListener((event) => this.onCellClick(event));
-    this.gamePlay.addCellLeaveListener((event) => this.onCellLeave(event));
     this.turn = 'player';
   }
 
@@ -118,6 +117,10 @@ export default class GameController {
         player.character.health = 100;
       }
     }
+  }
+
+  onNewGameClick() {
+    this.init();
   }
 
   onCellClick(index) {
