@@ -39,22 +39,22 @@ export default class GamePlay {
         <div data-id="board" class="board"></div>
         <div data-id="scores" class="scores">
           <div class="level">
-            <span>level: 4</span>
+            <span></span>
           </div>
           <div class="points">
             <span>points: 0</span>
           </div>
-          <div class="top-points">
-            <div class="position">0</div>
-            <div class="position">1</div>
-            <div class="position">2</div>
-            <div class="position">3</div>
-            <div class="position">4</div>
-            <div class="position">5</div>
-            <div class="position">6</div>
-            <div class="position">7</div>
-            <div class="position">8</div>
-            <div class="position">9</div>
+          <div class="leaderboard">
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
+            <div class="result">0</div>
           </div>
         </div>
       </div>
@@ -63,13 +63,18 @@ export default class GamePlay {
     this.newGameEl = this.container.querySelector('[data-id=action-restart]');
     this.saveGameEl = this.container.querySelector('[data-id=action-save]');
     this.loadGameEl = this.container.querySelector('[data-id=action-load]');
-    this.scoreEl = this.container.querySelector('[data-id=scores]');
 
     this.newGameEl.addEventListener('click', (event) => this.onNewGameClick(event));
     this.saveGameEl.addEventListener('click', (event) => this.onSaveGameClick(event));
     this.loadGameEl.addEventListener('click', (event) => this.onLoadGameClick(event));
 
     this.boardEl = this.container.querySelector('[data-id=board]');
+    this.scoresEl = this.container.querySelector('[data-id=scores]');
+
+    this.currentLevel = this.scoresEl.querySelector('.level');
+    this.points = this.scoresEl.querySelector('.points');
+    this.leaderBoard = this.scoresEl.querySelector('.leaderboard');
+    this.results = Array.from(this.leaderBoard.querySelectorAll('.result'));
 
     this.boardEl.classList.add(theme);
     for (let i = 0; i < this.boardSize ** 2; i += 1) {

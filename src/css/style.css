@@ -279,17 +279,17 @@ body {
   border-bottom: 5px dotted teal;
 }
 
-.position {
+.result {
   display: flex;
   height: 40px;
   justify-content: center;
   align-items: center;
 }
 
-.position:nth-of-type(n + 1) {
+.result:nth-of-type(n + 1) {
   border-bottom: 5px dashed teal;
 }
 
-.position:nth-of-type(10) {
+.result:nth-of-type(10) {
   border-bottom: none;
 }

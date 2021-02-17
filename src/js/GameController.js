@@ -24,6 +24,7 @@ export default class GameController {
     this.gamePlay.addSaveGameListener(() => this.onSaveGameClick({
       level: this.level,
       theme: this.theme,
+      points: this.points,
       chars: this.characters,
       playerTeam: this.playerTeam,
       enemyTeam: this.enemyTeam,
@@ -32,6 +33,7 @@ export default class GameController {
 
     this.playerCells = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
     this.enemyCells = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
+    this.points = 0;
   }
 
   onNewGameClick() {
@@ -39,19 +41,21 @@ export default class GameController {
   }
 
   onSaveGameClick(obj) {
-    this.stateService.clear();
+    this.stateService.delete();
     this.stateService.save(GameState.from(obj));
   }
 
   onLoadGameClick() {
     const data = this.stateService.load();
-    console.log(data);
     this.level = data.level;
     this.theme = data.theme;
+    this.points = data.points;
     this.characters = data.chars;
     this.playerTeam = data.playerTeam;
     this.enemyTeam = data.enemyTeam;
     this.gamePlay.drawUi(this.theme);
+    this.gamePlay.currentLevel.innerText = `level: ${this.level}`;
+    this.gamePlay.points.innerText = `points: ${this.points}`;
     this.gamePlay.redrawPositions(this.characters);
   }
 
@@ -81,9 +85,10 @@ export default class GameController {
     this.level = 1;
     this.theme = themes.prairie;
     this.gamePlay.drawUi(this.theme);
+    this.gamePlay.currentLevel.innerText = `level: ${this.level}`;
     // drawing
     this.gamePlay.redrawPositions(this.characters);
-
+    this.renderScoreboard();
     // adding eventListeners
     this.turn = 'player';
   }
@@ -138,6 +143,13 @@ export default class GameController {
           : this.level === 4 ? themes.mountain
             : Object.values(themes)[Math.floor(Math.random() * Object.values(themes).length)];
     this.gamePlay.drawUi(this.theme);
+    this.gamePlay.currentLevel.innerText = `level: ${this.level}`;
+    for (const player of this.playerTeam) {
+      this.points += player.character.health;
+    }
+    this.points = +this.points.toFixed(2);
+    this.gamePlay.points.innerText = `points: ${this.points}`;
+    this.renderScoreboard();
     for (const player of this.playerTeam) {
       player.character.level += 1;
       player.character.attack = +Math.max(player.character.attack, player.character.attack * (1.8 - player.character.health / 100)).toFixed(2);
@@ -146,6 +158,13 @@ export default class GameController {
       if (player.character.health > 100) {
         player.character.health = 100;
       }
+    }
+  }
+
+  renderScoreboard() {
+    const data = this.stateService.loadPoints();
+    for (let i = 0; i < data.length; i += 1) {
+      this.gamePlay.results[i].innerText = data[i];
     }
   }
 
@@ -527,7 +546,6 @@ export default class GameController {
     ];
 
     if (this.turn !== 'enemy') return;
-
     if (enemyChar.type === 'undead') {
       const cell = radiusOneCell.find((item) => item[0] === xP && item[1] === yP);
       if (cell) {
@@ -536,6 +554,7 @@ export default class GameController {
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
             player.character.health = +(player.character.health - resultAttack).toFixed(2);
+            this.characters = [...this.playerTeam, ...this.enemyTeam];
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -547,6 +566,8 @@ export default class GameController {
             if (this.playerTeam.length === 0) {
               this.gamePlay.redrawPositions(this.enemyTeam);
               alert('LuL you lost in retro game');
+              this.stateService.addPoints(this.points);
+              this.renderScoreboard();
               this.turn = 'gameover';
             } else {
               this.gamePlay.redrawPositions(this.characters);
@@ -563,7 +584,13 @@ export default class GameController {
         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
         Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
-        enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+        [this.characters, this.enemyTeam].forEach((array) => {
+          for (const char of array) {
+            if (char.position === enemy.position) {
+              char.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            }
+          }
+        });
         this.gamePlay.redrawPositions(this.characters);
         this.turn = 'player';
       }
@@ -575,6 +602,7 @@ export default class GameController {
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
             player.character.health = +(player.character.health - resultAttack).toFixed(2);
+            this.characters = [...this.playerTeam, ...this.enemyTeam];
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -586,6 +614,8 @@ export default class GameController {
             if (this.playerTeam.length === 0) {
               this.gamePlay.redrawPositions(this.enemyTeam);
               alert('LuL you lost in retro game');
+              this.stateService.addPoints(this.points);
+              this.renderScoreboard();
               this.turn = 'gameover';
             } else {
               this.gamePlay.redrawPositions(this.characters);
@@ -620,6 +650,7 @@ export default class GameController {
         this.gamePlay.showDamage(cellPos, resultAttack)
           .then(() => {
             player.character.health = +(player.character.health - resultAttack).toFixed(2);
+            this.characters = [...this.playerTeam, ...this.enemyTeam];
             [this.characters, this.playerTeam].forEach((array) => {
               array.map((elem, pos) => {
                 if (elem.character.health <= 0) {
@@ -631,6 +662,8 @@ export default class GameController {
             if (this.playerTeam.length === 0) {
               this.gamePlay.redrawPositions(this.enemyTeam);
               alert('LuL you lost in retro game');
+              this.stateService.addPoints(this.points);
+              this.renderScoreboard();
               this.turn = 'gameover';
             } else {
               this.gamePlay.redrawPositions(this.characters);
@@ -647,7 +680,13 @@ export default class GameController {
         const newEnemyCell = filteredArray[Math.floor(Math.random() * filteredArray.length)];
 
         Array.from(this.gamePlay.boardEl.children)[enemy.position].title = '';
-        enemy.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+        [this.characters, this.enemyTeam].forEach((array) => {
+          for (const char of array) {
+            if (char.position === enemy.position) {
+              char.position = newEnemyCell[0] * 8 + newEnemyCell[1];
+            }
+          }
+        });
         this.gamePlay.redrawPositions(this.characters);
         this.turn = 'player';
       }
