@@ -20,16 +20,21 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
   const playerTeam = new Team();
   const enemyTeam = new Team();
 
-  do {
+  for (let i = 0; playerTeam.array.length < characterCount; i += 1) {
     const generator = characterGenerator(allowedTypes, maxLevel);
     const char = generator.next();
-    if (playerTeam.array.length < characterCount && (char.value.type === 'swordsman' || char.value.type === 'bowman')) {
+    if (char.value.type === 'swordsman' || char.value.type === 'bowman') {
       playerTeam.add(char.value);
     }
-    if (enemyTeam.array.length < characterCount && (char.value.type === 'undead' || char.value.type === 'vampire')) {
+  }
+
+  for (let i = 0; enemyTeam.array.length < characterCount; i += 1) {
+    const generator = characterGenerator(allowedTypes, maxLevel);
+    const char = generator.next();
+    if (char.value.type === 'undead' || char.value.type === 'vampire') {
       enemyTeam.add(char.value);
     }
-  } while (playerTeam.array.length < characterCount || enemyTeam.array.length < characterCount);
+  }
 
   return [playerTeam.array, enemyTeam.array];
 }

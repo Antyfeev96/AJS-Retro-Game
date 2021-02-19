@@ -56,6 +56,7 @@ export default class GameController {
     this.gamePlay.drawUi(this.theme);
     this.gamePlay.currentLevel.innerText = `level: ${this.level}`;
     this.gamePlay.points.innerText = `points: ${this.points}`;
+    this.renderScoreboard();
     this.gamePlay.redrawPositions(this.characters);
   }
 
